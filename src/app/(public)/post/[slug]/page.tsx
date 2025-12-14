@@ -1,0 +1,134 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { supabase } from "~/lib/supabase";
+
+export default async function PostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const { data: post, error } = await supabase
+    .from("posts")
+    .select("*, categories(name, slug, color)")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .single();
+
+  if (error || !post) {
+    notFound();
+  }
+
+  // 增加阅读数
+  await supabase
+    .from("posts")
+    .update({ view_count: (post.view_count || 0) + 1 })
+    .eq("id", post.id);
+
+  return (
+    <main className="min-h-screen bg-white">
+      <article className="mx-auto max-w-4xl px-4 py-12">
+        {/* Breadcrumb */}
+        <nav className="mb-8 flex items-center gap-2 text-sm text-slate-600">
+          <Link href="/" className="hover:text-blue-600">
+            首页
+          </Link>
+          <span>/</span>
+          <Link href="/blog" className="hover:text-blue-600">
+            博客
+          </Link>
+          <span>/</span>
+          <span className="text-slate-900">{post.title}</span>
+        </nav>
+
+        {/* Category */}
+        {post.categories && (
+          <div className="mb-4">
+            <Link
+              href={`/blog?category=${post.categories.slug}`}
+              className="inline-block rounded-full px-3 py-1 text-sm font-medium transition-opacity hover:opacity-80"
+              style={{
+                backgroundColor: post.categories.color + "20",
+                color: post.categories.color,
+              }}
+            >
+              {post.categories.name}
+            </Link>
+          </div>
+        )}
+
+        {/* Title */}
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+          {post.title}
+        </h1>
+
+        {/* Meta */}
+        <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-600">
+          <time dateTime={post.published_at} suppressHydrationWarning>
+            发布于 {new Date(post.published_at!).toLocaleDateString("zh-CN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+          {post.view_count > 0 && (
+            <>
+              <span>·</span>
+              <span>{post.view_count} 次阅读</span>
+            </>
+          )}
+        </div>
+
+        {/* Cover Image */}
+        {post.cover_image && (
+          <div className="mt-8 aspect-video w-full overflow-hidden rounded-2xl bg-slate-100">
+            <img
+              src={post.cover_image}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+
+        {/* Excerpt */}
+        {post.excerpt && (
+          <div className="mt-8 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">
+            <p className="text-lg italic text-slate-700">{post.excerpt}</p>
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="prose prose-slate mt-8 max-w-none prose-headings:font-bold prose-a:text-blue-600 prose-img:rounded-lg">
+          {post.content ? (
+            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+          ) : (
+            <p className="text-slate-600">暂无内容</p>
+          )}
+        </div>
+
+        {/* Back to Blog */}
+        <div className="mt-12 border-t border-slate-200 pt-8">
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            返回博客列表
+          </Link>
+        </div>
+      </article>
+    </main>
+  );
+}
