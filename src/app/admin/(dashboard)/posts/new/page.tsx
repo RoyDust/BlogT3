@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "~/lib/supabase";
+import dynamic from "next/dynamic";
+
+// 动态导入 RichTextEditor（避免 SSR 问题）
+const RichTextEditor = dynamic(() => import("~/components/RichTextEditor"), {
+  ssr: false,
+});
 
 type Category = {
   id: string;
@@ -10,10 +16,26 @@ type Category = {
   slug: string;
 };
 
-export default function PostEditorPage({ params }: { params: { id?: string } }) {
+export default function PostEditorPage({
+  params,
+}: {
+  params: Promise<{ id?: string }> | { id?: string };
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [postId, setPostId] = useState<string | undefined>(undefined);
+
+  // 处理 params（可能是 Promise）
+  useEffect(() => {
+    async function loadParams() {
+      const resolvedParams = await Promise.resolve(params);
+      if (resolvedParams.id) {
+        setPostId(resolvedParams.id);
+      }
+    }
+    loadParams();
+  }, [params]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -39,12 +61,12 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
 
   // 如果是编辑模式，加载文章数据
   useEffect(() => {
-    if (params.id) {
+    if (postId) {
       async function loadPost() {
         const { data } = await supabase
           .from("posts")
           .select("*")
-          .eq("id", params.id)
+          .eq("id", postId)
           .single();
 
         if (data) {
@@ -61,7 +83,7 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
       }
       loadPost();
     }
-  }, [params.id]);
+  }, [postId]);
 
   const generateSlug = (title: string) => {
     // 简单的 slug 生成，可以使用库如 slugify 来改进
@@ -92,12 +114,14 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
         published_at: status === "published" ? new Date().toISOString() : null,
       };
 
-      if (params.id) {
+      console.log(postData);
+
+      if (postId) {
         // 更新文章
         const { error } = await supabase
           .from("posts")
           .update(postData)
-          .eq("id", params.id);
+          .eq("id", postId);
 
         if (error) throw error;
       } else {
@@ -120,7 +144,7 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-900">
-          {params.id ? "编辑文章" : "新建文章"}
+          {postId ? "编辑文章" : "新建文章"}
         </h1>
       </div>
 
@@ -137,7 +161,7 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-lg font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-lg font-medium text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder="输入文章标题..."
                 required
               />
@@ -154,7 +178,7 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, slug: e.target.value }))
                 }
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder="article-slug"
                 required
               />
@@ -174,28 +198,22 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
                   setFormData((prev) => ({ ...prev, excerpt: e.target.value }))
                 }
                 rows={3}
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder="简短描述文章内容..."
               />
             </div>
 
             {/* Content */}
             <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
                 内容
               </label>
-              <textarea
-                value={formData.content}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, content: e.target.value }))
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) =>
+                  setFormData((prev) => ({ ...prev, content }))
                 }
-                rows={20}
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 font-mono text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="输入 HTML 或纯文本内容..."
               />
-              <p className="mt-2 text-sm text-slate-500">
-                💡 提示: 当前支持 HTML 格式。未来可集成富文本编辑器 (Tiptap/Novel)
-              </p>
             </div>
           </div>
 
@@ -237,7 +255,7 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
                     category_id: e.target.value,
                   }))
                 }
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="">选择分类</option>
                 {categories.map((cat) => (
@@ -262,7 +280,7 @@ export default function PostEditorPage({ params }: { params: { id?: string } }) 
                     cover_image: e.target.value,
                   }))
                 }
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder="https://example.com/image.jpg"
               />
               {formData.cover_image && (
