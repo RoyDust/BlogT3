@@ -50,7 +50,7 @@ export default async function PostsManagePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {posts.map((post: any) => (
+              {posts.map((post) => (
                 <tr key={post.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
@@ -87,10 +87,10 @@ export default async function PostsManagePage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    {post.view_count || 0}
+                    {post.view_count ?? 0}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600" suppressHydrationWarning>
-                    {new Date(post.created_at).toLocaleDateString("zh-CN")}
+                    {new Date(String(post.created_at ?? new Date())).toLocaleDateString("zh-CN")}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "~/lib/supabase";
 import dynamic from "next/dynamic";
 
@@ -34,7 +35,7 @@ export default function PostEditorPage({
         setPostId(resolvedParams.id);
       }
     }
-    loadParams();
+    void loadParams();
   }, [params]);
 
   const [formData, setFormData] = useState({
@@ -56,7 +57,7 @@ export default function PostEditorPage({
         .order("name");
       if (data) setCategories(data);
     }
-    loadCategories();
+    void loadCategories();
   }, []);
 
   // 如果是编辑模式，加载文章数据
@@ -71,17 +72,17 @@ export default function PostEditorPage({
 
         if (data) {
           setFormData({
-            title: data.title || "",
-            slug: data.slug || "",
-            content: data.content || "",
-            excerpt: data.excerpt || "",
-            cover_image: data.cover_image || "",
-            category_id: data.category_id || "",
-            status: data.status || "draft",
+            title: data.title ?? "",
+            slug: data.slug ?? "",
+            content: data.content ?? "",
+            excerpt: data.excerpt ?? "",
+            cover_image: data.cover_image ?? "",
+            category_id: data.category_id ?? "",
+            status: data.status ?? "draft",
           });
         }
       }
-      loadPost();
+      void loadPost();
     }
   }, [postId]);
 
@@ -284,11 +285,13 @@ export default function PostEditorPage({
                 placeholder="https://example.com/image.jpg"
               />
               {formData.cover_image && (
-                <div className="mt-3">
-                  <img
+                <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg bg-slate-100">
+                  <Image
                     src={formData.cover_image}
                     alt="封面预览"
-                    className="rounded-lg"
+                    fill
+                    sizes="400px"
+                    className="object-cover"
                     onError={(e) => {
                       e.currentTarget.src =
                         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ddd' width='400' height='300'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3E图片加载失败%3C/text%3E%3C/svg%3E";

@@ -16,7 +16,15 @@ export const categoryRouter = createTRPCRouter({
 
     if (error) throw new Error(error.message);
 
-    return data ?? [];
+    return (data ?? []) as Array<{
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      color: string;
+      created_at: string;
+      updated_at: string;
+    }>;
   }),
 
   // 根据 slug 获取分类
@@ -31,7 +39,15 @@ export const categoryRouter = createTRPCRouter({
 
       if (error) throw new Error(error.message);
 
-      return data;
+      return data as {
+        id: string;
+        name: string;
+        slug: string;
+        description: string | null;
+        color: string;
+        created_at: string;
+        updated_at: string;
+      };
     }),
 
   // 获取分类及其文章数量
@@ -46,6 +62,15 @@ export const categoryRouter = createTRPCRouter({
 
     if (error) throw new Error(error.message);
 
-    return data ?? [];
+    return (data ?? []) as Array<{
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      color: string;
+      created_at: string;
+      updated_at: string;
+      posts: { count: number }[];
+    }>;
   }),
 });

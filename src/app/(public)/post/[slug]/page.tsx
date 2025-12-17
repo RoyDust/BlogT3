@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -25,7 +26,7 @@ export default async function PostPage({
   // 增加阅读数
   await supabase
     .from("posts")
-    .update({ view_count: (post.view_count || 0) + 1 })
+    .update({ view_count: (post.view_count ?? 0) + 1 })
     .eq("id", post.id);
 
   return (
@@ -66,13 +67,13 @@ export default async function PostPage({
         </h1>
 
         {/* Debug Button */}
-        <DebugButton content={post.content || ""} />
+        <DebugButton content={post.content ?? ""} />
 
         {/* Meta */}
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-600">
-          <time dateTime={post.published_at} suppressHydrationWarning>
+          <time dateTime={post.published_at ?? undefined} suppressHydrationWarning>
             发布于{" "}
-            {new Date(post.published_at!).toLocaleDateString("zh-CN", {
+            {new Date(String(post.published_at ?? new Date())).toLocaleDateString("zh-CN", {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -88,11 +89,14 @@ export default async function PostPage({
 
         {/* Cover Image */}
         {post.cover_image && (
-          <div className="mt-8 aspect-video w-full overflow-hidden rounded-2xl bg-slate-100">
-            <img
+          <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl bg-slate-100">
+            <Image
               src={post.cover_image}
               alt={post.title}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 896px"
+              className="object-cover"
+              priority
             />
           </div>
         )}

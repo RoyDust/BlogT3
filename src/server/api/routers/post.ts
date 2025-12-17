@@ -53,7 +53,22 @@ export const postRouter = createTRPCRouter({
           .eq("id", data.id);
       }
 
-      return data;
+      return data as {
+        id: string;
+        title: string;
+        slug: string;
+        content: string | null;
+        excerpt: string | null;
+        cover_image: string | null;
+        status: string;
+        published_at: string | null;
+        view_count: number;
+        author_id: string;
+        category_id: string | null;
+        created_at: string;
+        updated_at: string;
+        categories: { name: string; slug: string; color: string } | null;
+      };
     }),
 
   // 根据分类获取文章
@@ -119,7 +134,21 @@ export const postRouter = createTRPCRouter({
 
       if (error) throw new Error(error.message);
 
-      return data;
+      return data as {
+        id: string;
+        title: string;
+        slug: string;
+        content: string | null;
+        excerpt: string | null;
+        cover_image: string | null;
+        status: string;
+        published_at: string | null;
+        view_count: number;
+        author_id: string;
+        category_id: string | null;
+        created_at: string;
+        updated_at: string;
+      };
     }),
 
   // 更新文章（需要认证）
@@ -140,7 +169,7 @@ export const postRouter = createTRPCRouter({
       const { id, ...updateData } = input;
 
       // 如果状态改为 published，设置发布时间
-      const dataToUpdate: any = { ...updateData };
+      const dataToUpdate: Record<string, unknown> = { ...updateData };
       if (updateData.status === "published") {
         dataToUpdate.published_at = new Date().toISOString();
       }
@@ -155,7 +184,21 @@ export const postRouter = createTRPCRouter({
 
       if (error) throw new Error(error.message);
 
-      return data;
+      return data as {
+        id: string;
+        title: string;
+        slug: string;
+        content: string | null;
+        excerpt: string | null;
+        cover_image: string | null;
+        status: string;
+        published_at: string | null;
+        view_count: number;
+        author_id: string;
+        category_id: string | null;
+        created_at: string;
+        updated_at: string;
+      };
     }),
 
   // 删除文章（需要认证）
@@ -183,6 +226,21 @@ export const postRouter = createTRPCRouter({
 
     if (error) throw new Error(error.message);
 
-    return data ?? [];
+    return (data ?? []) as Array<{
+      id: string;
+      title: string;
+      slug: string;
+      content: string | null;
+      excerpt: string | null;
+      cover_image: string | null;
+      status: string;
+      published_at: string | null;
+      view_count: number;
+      author_id: string;
+      category_id: string | null;
+      created_at: string;
+      updated_at: string;
+      categories: { name: string; slug: string; color: string } | null;
+    }>;
   }),
 });

@@ -28,9 +28,9 @@ async function testConnection() {
     console.log('\n✅ All tests passed! Your Supabase database is working correctly.')
   } catch (error) {
     console.error('\n❌ Database connection failed!')
-    console.error('Error:', error.message)
+    console.error('Error:', error instanceof Error ? error.message : String(error))
 
-    if (error.message.includes("Can't reach database server")) {
+    if (error instanceof Error && error.message.includes("Can't reach database server")) {
       console.error('\n📋 Possible issues:')
       console.error('  1. Supabase project might be paused (check dashboard)')
       console.error('  2. Incorrect DATABASE_URL (check .env file)')

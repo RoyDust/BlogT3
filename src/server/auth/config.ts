@@ -42,22 +42,25 @@ export const authConfig = {
           return null;
         }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
         // 从自定义 users 表查询用户
         const { data: user, error } = await supabase
           .from("users")
           .select("*")
-          .eq("email", credentials.email as string)
+          .eq("email", email)
           .eq("is_active", true)
           .single();
 
-        if (error || !user) {
+        if (error || !user?.password_hash) {
           return null;
         }
 
         // 验证密码
         const isValidPassword = await bcrypt.compare(
-          credentials.password as string,
-          user.password_hash
+          password,
+          user.password_hash as string
         );
 
         if (!isValidPassword) {
@@ -73,7 +76,7 @@ export const authConfig = {
         return {
           id: user.id,
           email: user.email,
-          name: user.name || user.email.split("@")[0],
+          name: user.name ?? user.email.split("@")[0],
         };
       },
     }),

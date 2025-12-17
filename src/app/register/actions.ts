@@ -19,7 +19,7 @@ export async function registerUser(formData: {
         {
           email: formData.email,
           password_hash: passwordHash,
-          name: formData.name || formData.email.split("@")[0],
+          name: formData.name ?? formData.email.split("@")[0],
           role: "admin",
         },
       ])
@@ -34,7 +34,8 @@ export async function registerUser(formData: {
     }
 
     return { success: true, data };
-  } catch (err: any) {
-    return { success: false, error: "注册失败: " + err.message };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "未知错误";
+    return { success: false, error: "注册失败: " + message };
   }
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "~/lib/supabase";
 
 export default async function HomePage() {
@@ -62,17 +63,19 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post: any) => (
+              {posts.map((post) => (
                 <article
                   key={post.id}
                   className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-lg"
                 >
                   {post.cover_image && (
-                    <div className="aspect-video w-full overflow-hidden bg-slate-100">
-                      <img
+                    <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
+                      <Image
                         src={post.cover_image}
                         alt={post.title}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform group-hover:scale-105"
                       />
                     </div>
                   )}
@@ -106,8 +109,13 @@ export default async function HomePage() {
                     )}
 
                     <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
-                      <time dateTime={post.published_at} suppressHydrationWarning>
-                        {new Date(post.published_at).toLocaleDateString("zh-CN")}
+                      <time
+                        dateTime={post.published_at ?? undefined}
+                        suppressHydrationWarning
+                      >
+                        {new Date(
+                          String(post.published_at ?? new Date()),
+                        ).toLocaleDateString("zh-CN")}
                       </time>
                       {post.view_count > 0 && (
                         <span>{post.view_count} 次阅读</span>

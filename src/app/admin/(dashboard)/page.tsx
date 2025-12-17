@@ -31,25 +31,25 @@ export default async function AdminDashboard() {
   const stats = [
     {
       name: "总文章数",
-      value: totalPosts || 0,
+      value: totalPosts ?? 0,
       icon: "📝",
       color: "blue",
     },
     {
       name: "已发布",
-      value: publishedPosts || 0,
+      value: publishedPosts ?? 0,
       icon: "✅",
       color: "green",
     },
     {
       name: "草稿",
-      value: draftPosts || 0,
+      value: draftPosts ?? 0,
       icon: "📄",
       color: "yellow",
     },
     {
       name: "分类数",
-      value: totalCategories || 0,
+      value: totalCategories ?? 0,
       icon: "📁",
       color: "purple",
     },
@@ -126,7 +126,7 @@ export default async function AdminDashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600" suppressHydrationWarning>
-                      {new Date(post.created_at).toLocaleDateString("zh-CN")}
+                      {new Date(String(post.created_at ?? new Date())).toLocaleDateString("zh-CN")}
                     </td>
                   </tr>
                 ))}

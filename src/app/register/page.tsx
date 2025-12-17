@@ -41,14 +41,15 @@ export default function RegisterPage() {
       });
 
       if (!result.success) {
-        setError(result.error || "注册失败");
+        setError(result.error ?? "注册失败");
         return;
       }
 
       alert("注册成功！现在可以登录了");
       router.push("/admin/login");
-    } catch (err: any) {
-      setError("注册失败: " + err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "未知错误";
+      setError("注册失败: " + message);
     } finally {
       setLoading(false);
     }
