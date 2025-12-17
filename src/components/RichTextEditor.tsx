@@ -1,12 +1,9 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useMemo } from "react";
-import TurndownService from "turndown";
+import { useEffect, useState } from "react";
+import type MarkdownIt from "markdown-it";
+import type MdEditor from "react-markdown-editor-lite";
+import "react-markdown-editor-lite/lib/index.css";
 
 interface RichTextEditorProps {
   content: string;
@@ -17,313 +14,259 @@ export default function RichTextEditor({
   content,
   onChange,
 }: RichTextEditorProps) {
-  // 创建 TurndownService 实例用于 HTML 转 Markdown
-  const turndownService = useMemo(() => {
-    const service = new TurndownService({
-      headingStyle: "atx", // 使用 # 风格的标题
-      hr: "---",
-      bulletListMarker: "-",
-      codeBlockStyle: "fenced", // 使用 ``` 风格的代码块
-      fence: "```",
-      emDelimiter: "*",
-      strongDelimiter: "**",
-      linkStyle: "inlined",
+  const [Editor, setEditor] = useState<typeof MdEditor | null>(null);
+  const [mdParser, setMdParser] = useState<MarkdownIt | null>(null);
+
+  useEffect(() => {
+    // 动态导入编辑器和 MarkdownIt
+    void Promise.all([
+      import("react-markdown-editor-lite"),
+      import("markdown-it"),
+    ]).then(([editorModule, markdownItModule]) => {
+      setEditor(() => editorModule.default);
+      const md = new markdownItModule.default({
+        html: true,
+        linkify: true, // 自动转换URL为链接
+        typographer: true,
+      });
+      setMdParser(md);
     });
-    return service;
   }, []);
 
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-blue-600 underline",
-        },
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: "max-w-full h-auto rounded-lg",
-        },
-      }),
-      Placeholder.configure({
-        placeholder: "开始输入内容... 支持 Markdown 快捷键",
-      }),
-    ],
-    content: content || "",
-    editorProps: {
-      attributes: {
-        class:
-          "prose prose-slate max-w-none focus:outline-none min-h-[400px] px-4 py-3",
-      },
-    },
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      const markdown = turndownService.turndown(html);
-      onChange(markdown);
-    },
-  });
+  const handleEditorChange = ({ text }: { text: string }) => {
+    onChange(text);
+  };
 
-  // 当 content prop 改变时更新编辑器
-  useEffect(() => {
-    if (editor && content !== undefined) {
-      const currentHtml = editor.getHTML();
-      const currentMarkdown = turndownService.turndown(currentHtml);
-      // 只有当内容真的不同时才更新
-      if (content !== currentMarkdown) {
-        editor.commands.setContent(content, { emitUpdate: false });
-      }
-    }
-  }, [content, editor, turndownService]);
-
-  if (!editor) {
-    return <div className="animate-pulse">加载编辑器...</div>;
+  if (!Editor || !mdParser) {
+    return (
+      <div className="flex h-[600px] items-center justify-center rounded-lg border border-slate-300 bg-slate-50">
+        <div className="text-center">
+          <div className="mb-2 text-lg font-medium text-slate-700">
+            加载编辑器...
+          </div>
+          <div className="text-sm text-slate-500">请稍候</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="rounded-lg border border-slate-300 bg-white">
-      {/* 工具栏 */}
-      <div className="flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-2">
-        {/* 标题 */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-            editor.isActive("heading", { level: 1 })
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="标题 1 (输入 # 然后空格)"
-        >
-          H1
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-            editor.isActive("heading", { level: 2 })
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="标题 2 (输入 ## 然后空格)"
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-            editor.isActive("heading", { level: 3 })
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="标题 3 (输入 ### 然后空格)"
-        >
-          H3
-        </button>
+    <div className="markdown-editor-container">
+      <Editor
+        value={content}
+        style={{ height: "600px" }}
+        renderHTML={(text) => mdParser.render(text)}
+        onChange={handleEditorChange}
+        placeholder="开始输入 Markdown 内容..."
+        config={{
+          view: {
+            menu: true,
+            md: true,
+            html: true,
+          },
+          canView: {
+            menu: true,
+            md: true,
+            html: true,
+            fullScreen: true,
+            hideMenu: false,
+          },
+        }}
+      />
+      <style jsx global>{`
+        /* 编辑器容器样式 */
+        .markdown-editor-container {
+          border-radius: 0.5rem;
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
+        }
 
-        <div className="mx-1 w-px bg-slate-300" />
+        /* 编辑器主体 */
+        .rc-md-editor {
+          border: none !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
+        }
 
-        {/* 文本样式 */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`rounded px-3 py-1 text-sm font-bold transition-colors ${
-            editor.isActive("bold")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="粗体 (Ctrl+B)"
-        >
-          B
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`rounded px-3 py-1 text-sm italic transition-colors ${
-            editor.isActive("italic")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="斜体 (Ctrl+I)"
-        >
-          I
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={`rounded px-3 py-1 text-sm line-through transition-colors ${
-            editor.isActive("strike")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="删除线"
-        >
-          S
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          className={`rounded px-3 py-1 text-sm font-mono transition-colors ${
-            editor.isActive("code")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="行内代码"
-        >
-          `code`
-        </button>
+        /* 工具栏样式 */
+        .rc-md-editor .rc-md-navigation {
+          background-color: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 8px;
+        }
 
-        <div className="mx-1 w-px bg-slate-300" />
+        .rc-md-editor .button {
+          color: #475569;
+          transition: all 0.2s;
+        }
 
-        {/* 列表 */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`rounded px-3 py-1 text-sm transition-colors ${
-            editor.isActive("bulletList")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="无序列表 (输入 - 然后空格)"
-        >
-          • 列表
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`rounded px-3 py-1 text-sm transition-colors ${
-            editor.isActive("orderedList")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="有序列表 (输入 1. 然后空格)"
-        >
-          1. 列表
-        </button>
+        .rc-md-editor .button:hover {
+          color: #0f172a;
+          background-color: #e2e8f0;
+        }
 
-        <div className="mx-1 w-px bg-slate-300" />
+        /* 编辑区域 */
+        .rc-md-editor .editor-container {
+          background-color: #ffffff;
+        }
 
-        {/* 其他 */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`rounded px-3 py-1 text-sm transition-colors ${
-            editor.isActive("blockquote")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="引用 (输入 > 然后空格)"
-        >
-          &ldquo; 引用
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={`rounded px-3 py-1 text-sm font-mono transition-colors ${
-            editor.isActive("codeBlock")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="代码块 (输入 ``` 然后空格)"
-        >
-          {"</>"}
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          className="rounded bg-white px-3 py-1 text-sm text-slate-700 transition-colors hover:bg-slate-100"
-          title="分割线 (输入 --- 然后回车)"
-        >
-          ─ 分割线
-        </button>
+        .rc-md-editor .editor-container > section {
+          padding: 16px;
+        }
 
-        <div className="mx-1 w-px bg-slate-300" />
+        .rc-md-editor .sec-md .input {
+          font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono",
+            Consolas, "Courier New", monospace;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #1e293b;
+        }
 
-        {/* 链接和图片 */}
-        <button
-          type="button"
-          onClick={() => {
-            const url = window.prompt("输入链接地址:");
-            if (url) {
-              editor.chain().focus().setLink({ href: url }).run();
-            }
-          }}
-          className={`rounded px-3 py-1 text-sm transition-colors ${
-            editor.isActive("link")
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700 hover:bg-slate-100"
-          }`}
-          title="链接"
-        >
-          🔗 链接
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const url = window.prompt("输入图片地址:");
-            if (url) {
-              editor.chain().focus().setImage({ src: url }).run();
-            }
-          }}
-          className="rounded bg-white px-3 py-1 text-sm text-slate-700 transition-colors hover:bg-slate-100"
-          title="图片"
-        >
-          🖼️ 图片
-        </button>
+        /* 预览区域样式 */
+        .rc-md-editor .custom-html-style {
+          padding: 16px;
+          background-color: #ffffff;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #1e293b;
+        }
 
-        <div className="mx-1 w-px bg-slate-300" />
+        /* Markdown 渲染样式 */
+        .custom-html-style h1,
+        .custom-html-style h2,
+        .custom-html-style h3,
+        .custom-html-style h4,
+        .custom-html-style h5,
+        .custom-html-style h6 {
+          margin-top: 24px;
+          margin-bottom: 16px;
+          font-weight: 600;
+          line-height: 1.25;
+          color: #0f172a;
+        }
 
-        {/* 撤销/重做 */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          className="rounded bg-white px-3 py-1 text-sm text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-30"
-          title="撤销 (Ctrl+Z)"
-        >
-          ↶ 撤销
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          className="rounded bg-white px-3 py-1 text-sm text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-30"
-          title="重做 (Ctrl+Y)"
-        >
-          ↷ 重做
-        </button>
-      </div>
+        .custom-html-style h1 {
+          font-size: 2em;
+          border-bottom: 1px solid #e2e8f0;
+          padding-bottom: 8px;
+        }
 
-      {/* 编辑器内容 */}
-      <EditorContent editor={editor} />
+        .custom-html-style h2 {
+          font-size: 1.5em;
+          border-bottom: 1px solid #e2e8f0;
+          padding-bottom: 8px;
+        }
 
-      {/* 提示信息 */}
-      <div className="border-t border-slate-200 bg-slate-50 p-2 text-xs text-slate-500">
-        <div className="mb-1 font-medium">💡 Markdown 快捷输入（输入后按空格）:</div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 md:grid-cols-3">
-          <div><code className="text-[10px]"># 空格</code> → 一级标题</div>
-          <div><code className="text-[10px]">## 空格</code> → 二级标题</div>
-          <div><code className="text-[10px]">### 空格</code> → 三级标题</div>
-          <div><code className="text-[10px]">**文本**</code> → 粗体</div>
-          <div><code className="text-[10px]">*文本*</code> → 斜体</div>
-          <div><code className="text-[10px]">~~文本~~</code> → 删除线</div>
-          <div><code className="text-[10px]">`代码`</code> → 行内代码</div>
-          <div><code className="text-[10px]">- 空格</code> → 无序列表</div>
-          <div><code className="text-[10px]">1. 空格</code> → 有序列表</div>
-          <div><code className="text-[10px]">&gt; 空格</code> → 引用块</div>
-          <div><code className="text-[10px]">``` 空格</code> → 代码块</div>
-          <div><code className="text-[10px]">--- 回车</code> → 分割线</div>
-        </div>
-        <div className="mt-2 text-[10px] text-slate-400">
-          ✓ 保存格式：Markdown | 编辑模式：富文本（所见即所得）
-        </div>
-      </div>
+        .custom-html-style h3 {
+          font-size: 1.25em;
+        }
+
+        .custom-html-style p {
+          margin-top: 0;
+          margin-bottom: 16px;
+        }
+
+        .custom-html-style ul,
+        .custom-html-style ol {
+          padding-left: 2em;
+          margin-bottom: 16px;
+        }
+
+        .custom-html-style li {
+          margin-bottom: 4px;
+        }
+
+        .custom-html-style code {
+          padding: 2px 6px;
+          margin: 0 2px;
+          font-size: 85%;
+          background-color: rgba(175, 184, 193, 0.2);
+          border-radius: 3px;
+          font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono",
+            Consolas, "Courier New", monospace;
+          color: #ec4899;
+        }
+
+        .custom-html-style pre {
+          padding: 16px;
+          overflow: auto;
+          font-size: 85%;
+          line-height: 1.45;
+          background-color: #1e293b;
+          border-radius: 6px;
+          margin-bottom: 16px;
+        }
+
+        .custom-html-style pre code {
+          padding: 0;
+          margin: 0;
+          background-color: transparent;
+          color: #f1f5f9;
+        }
+
+        .custom-html-style blockquote {
+          padding: 0 1em;
+          color: #64748b;
+          border-left: 4px solid #e2e8f0;
+          margin: 0 0 16px 0;
+        }
+
+        .custom-html-style blockquote p {
+          margin-bottom: 0;
+        }
+
+        .custom-html-style a {
+          color: #2563eb;
+          text-decoration: none;
+        }
+
+        .custom-html-style a:hover {
+          text-decoration: underline;
+        }
+
+        .custom-html-style img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 6px;
+          margin: 16px 0;
+        }
+
+        .custom-html-style hr {
+          height: 2px;
+          padding: 0;
+          margin: 24px 0;
+          background-color: #e2e8f0;
+          border: 0;
+        }
+
+        .custom-html-style table {
+          border-spacing: 0;
+          border-collapse: collapse;
+          margin-bottom: 16px;
+          width: 100%;
+          overflow: auto;
+        }
+
+        .custom-html-style table th,
+        .custom-html-style table td {
+          padding: 6px 13px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .custom-html-style table th {
+          font-weight: 600;
+          background-color: #f8fafc;
+        }
+
+        .custom-html-style table tr:nth-child(2n) {
+          background-color: #f8fafc;
+        }
+
+        /* 全屏模式 */
+        .rc-md-editor.full {
+          z-index: 9999;
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { supabase } from "~/lib/supabase";
+import DebugButton from "~/components/DebugButton";
 
 export default async function PostPage({
   params,
@@ -62,10 +65,14 @@ export default async function PostPage({
           {post.title}
         </h1>
 
+        {/* Debug Button */}
+        <DebugButton content={post.content || ""} />
+
         {/* Meta */}
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-600">
           <time dateTime={post.published_at} suppressHydrationWarning>
-            发布于 {new Date(post.published_at!).toLocaleDateString("zh-CN", {
+            发布于{" "}
+            {new Date(post.published_at!).toLocaleDateString("zh-CN", {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -93,14 +100,16 @@ export default async function PostPage({
         {/* Excerpt */}
         {post.excerpt && (
           <div className="mt-8 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">
-            <p className="text-lg italic text-slate-700">{post.excerpt}</p>
+            <p className="text-lg text-slate-700 italic">{post.excerpt}</p>
           </div>
         )}
 
-        {/* Content */}
-        <div className="prose prose-slate mt-8 max-w-none prose-headings:font-bold prose-a:text-blue-600 prose-img:rounded-lg">
+        {/* Content - Markdown 渲染 */}
+        <div className="prose prose-slate prose-lg prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-900 prose-code:text-pink-600 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-img:rounded-lg prose-blockquote:border-l-blue-600 prose-blockquote:text-slate-600 mt-8 max-w-none">
           {post.content ? (
-            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {post.content}
+            </ReactMarkdown>
           ) : (
             <p className="text-slate-600">暂无内容</p>
           )}
