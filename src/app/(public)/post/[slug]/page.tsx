@@ -1,147 +1,186 @@
-import Link from "next/link";
-import Image from "next/image";
-import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { supabase } from "~/lib/supabase";
-import DebugButton from "~/components/DebugButton";
+import { notFound } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Calendar, Clock, Eye, ChevronLeft } from 'lucide-react';
+import { MainLayout } from '~/components/layout/MainLayout';
+import { CategoryBadge } from '~/components/blog/CategoryBadge';
+import { mockPosts } from '~/lib/mock-data';
 
-export default async function PostPage({
-  params,
-}: {
+interface PostPageProps {
   params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const { data: post, error } = await supabase
-    .from("posts")
-    .select("*, categories(name, slug, color)")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .single();
+}
 
-  if (error || !post) {
+export default async function PostPage({ params }: PostPageProps) {
+  const { slug } = await params;
+  const post = mockPosts.find((p) => p.slug === slug);
+
+  if (!post) {
     notFound();
   }
 
-  // 增加阅读数
-  await supabase
-    .from("posts")
-    .update({ view_count: (post.view_count ?? 0) + 1 })
-    .eq("id", post.id);
-
   return (
-    <main className="min-h-screen bg-white">
-      <article className="mx-auto max-w-4xl px-4 py-12">
-        {/* Breadcrumb */}
-        <nav className="mb-8 flex items-center gap-2 text-sm text-slate-600">
-          <Link href="/" className="hover:text-blue-600">
-            首页
-          </Link>
-          <span>/</span>
-          <Link href="/blog" className="hover:text-blue-600">
-            博客
-          </Link>
-          <span>/</span>
-          <span className="text-slate-900">{post.title}</span>
-        </nav>
+    <MainLayout showSidebar={true}>
+      <div className="space-y-4">
+        {/* Back Button */}
+        <Link
+          href="/blog"
+          className="btn-plain scale-animation rounded-lg h-11 px-4 inline-flex items-center gap-2 onload-animation"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          返回博客列表
+        </Link>
 
-        {/* Category */}
-        {post.categories && (
+        {/* Post Header */}
+        <article className="card-base p-6 md:p-10 onload-animation" style={{ animationDelay: '50ms' }}>
+          {/* Category */}
           <div className="mb-4">
-            <Link
-              href={`/blog?category=${post.categories.slug}`}
-              className="inline-block rounded-full px-3 py-1 text-sm font-medium transition-opacity hover:opacity-80"
-              style={{
-                backgroundColor: post.categories.color + "20",
-                color: post.categories.color,
-              }}
-            >
-              {post.categories.name}
-            </Link>
+            <CategoryBadge category={post.category} showLink={true} />
           </div>
-        )}
 
-        {/* Title */}
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-          {post.title}
-        </h1>
+          {/* Title */}
+          <h1 className="text-3xl md:text-5xl font-bold text-90 mb-6 leading-tight">
+            {post.title}
+          </h1>
 
-        {/* Debug Button */}
-        <DebugButton content={post.content ?? ""} />
+          {/* Meta Information */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-50 mb-6 pb-6 border-b border-black/10 dark:border-white/[0.15]">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              <time dateTime={post.publishedAt}>
+                {new Date(post.publishedAt).toLocaleDateString('zh-CN', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
+            </div>
 
-        {/* Meta */}
-        <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-600">
-          <time dateTime={post.published_at ?? undefined} suppressHydrationWarning>
-            发布于{" "}
-            {new Date(String(post.published_at ?? new Date())).toLocaleDateString("zh-CN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
-          {post.view_count > 0 && (
-            <>
+            {post.updatedAt && (
+              <div className="flex items-center gap-1.5">
+                <span>更新于</span>
+                <time dateTime={post.updatedAt}>
+                  {new Date(post.updatedAt).toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              <span>{post.wordCount} 字</span>
               <span>·</span>
-              <span>{post.view_count} 次阅读</span>
-            </>
-          )}
-        </div>
+              <span>{post.readingTime} 分钟</span>
+            </div>
 
-        {/* Cover Image */}
-        {post.cover_image && (
-          <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl bg-slate-100">
-            <Image
-              src={post.cover_image}
-              alt={post.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 896px"
-              className="object-cover"
-              priority
-            />
+            {post.viewCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Eye className="h-4 w-4" />
+                <span>{post.viewCount} 次阅读</span>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Excerpt */}
-        {post.excerpt && (
-          <div className="mt-8 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">
-            <p className="text-lg text-slate-700 italic">{post.excerpt}</p>
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {post.tags.map((tag) => (
+              <Link
+                key={tag.slug}
+                href={`/blog?tag=${tag.slug}`}
+                className="btn-plain scale-animation rounded-lg px-3 py-1 text-sm"
+              >
+                #{tag.name}
+              </Link>
+            ))}
           </div>
-        )}
 
-        {/* Content - Markdown 渲染 */}
-        <div className="prose prose-slate prose-lg prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-900 prose-code:text-pink-600 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-img:rounded-lg prose-blockquote:border-l-blue-600 prose-blockquote:text-slate-600 mt-8 max-w-none">
-          {post.content ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {post.content}
-            </ReactMarkdown>
-          ) : (
-            <p className="text-slate-600">暂无内容</p>
-          )}
-        </div>
-
-        {/* Back to Blog */}
-        <div className="mt-12 border-t border-slate-200 pt-8">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
+          {/* Cover Image */}
+          {post.coverImage && (
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-8">
+              <Image
+                src={post.coverImage}
+                alt={post.title}
+                fill
+                className="object-cover"
+                priority
               />
-            </svg>
-            返回博客列表
-          </Link>
+            </div>
+          )}
+
+          {/* Excerpt */}
+          <div className="text-lg text-75 leading-relaxed mb-8 p-4 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg border-l-4 border-[var(--primary)]">
+            {post.excerpt}
+          </div>
+
+          {/* Content */}
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            <div className="text-75 leading-relaxed whitespace-pre-line">
+              {post.content}
+            </div>
+          </div>
+        </article>
+
+        {/* Author Card */}
+        <div className="card-base p-6 onload-animation" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center gap-4">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+              <Image
+                src={post.author.avatar}
+                alt={post.author.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div>
+              <div className="font-bold text-90 text-lg">{post.author.name}</div>
+              <div className="text-75 text-sm">文章作者</div>
+            </div>
+          </div>
         </div>
-      </article>
-    </main>
+
+        {/* Related Posts Navigation */}
+        <div className="grid md:grid-cols-2 gap-4 onload-animation" style={{ animationDelay: '150ms' }}>
+          {(() => {
+            const currentIndex = mockPosts.findIndex((p) => p.slug === slug);
+            const prevPost = currentIndex > 0 ? mockPosts[currentIndex - 1] : null;
+            const nextPost = currentIndex < mockPosts.length - 1 ? mockPosts[currentIndex + 1] : null;
+
+            return (
+              <>
+                {prevPost ? (
+                  <Link
+                    href={`/post/${prevPost.slug}`}
+                    className="card-base p-4 hover:bg-[var(--btn-card-bg-hover)] transition group"
+                  >
+                    <div className="text-50 text-sm mb-2">← 上一篇</div>
+                    <div className="text-90 font-medium group-hover:text-[var(--primary)] transition line-clamp-1">
+                      {prevPost.title}
+                    </div>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+
+                {nextPost ? (
+                  <Link
+                    href={`/post/${nextPost.slug}`}
+                    className="card-base p-4 hover:bg-[var(--btn-card-bg-hover)] transition group text-right"
+                  >
+                    <div className="text-50 text-sm mb-2">下一篇 →</div>
+                    <div className="text-90 font-medium group-hover:text-[var(--primary)] transition line-clamp-1">
+                      {nextPost.title}
+                    </div>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+              </>
+            );
+          })()}
+        </div>
+      </div>
+    </MainLayout>
   );
 }
