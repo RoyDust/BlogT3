@@ -2,6 +2,8 @@ import "~/app/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { ThemeProvider } from "~/components/ui/ThemeProvider";
+import { getThemeInitScript } from "~/lib/theme-utils";
 
 export const metadata: Metadata = {
   title: "BlogT3 - 现代化博客平台",
@@ -13,8 +15,18 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" className={`${GeistSans.variable}`} suppressHydrationWarning={true}>
-      <body>{children}</body>
+    <html lang="zh-CN" className={`${GeistSans.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Theme initialization script to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: getThemeInitScript(),
+          }}
+        />
+      </head>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
