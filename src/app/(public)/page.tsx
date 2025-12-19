@@ -1,8 +1,13 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { MainLayout } from '~/components/layout/MainLayout';
-import { mockCategories } from '~/lib/mock-data';
+import { PostCard } from '~/components/blog/PostCard';
+import { mockCategories, mockPosts } from '~/lib/mock-data';
 
 export default function HomePage() {
+  // Get 3 most recent posts
+  const recentPosts = mockPosts.slice(0, 3);
+
   return (
     <MainLayout>
       <div className="space-y-8">
@@ -18,8 +23,33 @@ export default function HomePage() {
           </p>
         </section>
 
+        {/* Recent Posts */}
+        <section className="space-y-4 onload-animation" style={{ animationDelay: '50ms' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-90">最新文章</h2>
+            <Link
+              href="/blog"
+              className="btn-plain scale-animation rounded-lg h-9 px-4 text-sm flex items-center gap-1"
+            >
+              查看全部
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="space-y-4">
+            {recentPosts.map((post, index) => (
+              <div
+                key={post.id}
+                className="onload-animation"
+                style={{ animationDelay: `${100 + index * 50}ms` }}
+              >
+                <PostCard post={post} />
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Categories */}
-        <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '50ms' }}>
+        <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '250ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-6">分类浏览</h2>
           <div className="flex flex-wrap gap-3">
             {mockCategories.map((category) => (
@@ -39,7 +69,7 @@ export default function HomePage() {
         </section>
 
         {/* Quick Links */}
-        <section className="grid md:grid-cols-3 gap-4 onload-animation" style={{ animationDelay: '100ms' }}>
+        <section className="grid md:grid-cols-3 gap-4 onload-animation" style={{ animationDelay: '300ms' }}>
           <Link
             href="/blog"
             className="card-base p-6 hover:bg-[var(--btn-card-bg-hover)] transition group"
@@ -78,7 +108,7 @@ export default function HomePage() {
         </section>
 
         {/* Features */}
-        <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '150ms' }}>
+        <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '350ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-6">主要特性</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -124,7 +154,7 @@ export default function HomePage() {
         </section>
 
         {/* Call to Action */}
-        <section className="card-base p-8 md:p-12 text-center onload-animation" style={{ animationDelay: '200ms' }}>
+        <section className="card-base p-8 md:p-12 text-center onload-animation" style={{ animationDelay: '400ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-4">
             开始探索
           </h2>
