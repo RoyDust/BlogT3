@@ -1,8 +1,14 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Calendar } from 'lucide-react';
 import { MainLayout } from '~/components/layout/MainLayout';
 import { CategoryBadge } from '~/components/blog/CategoryBadge';
 import { mockPosts } from '~/lib/mock-data';
+
+export const metadata: Metadata = {
+  title: '文章归档 - BlogT3',
+  description: '按时间顺序浏览所有文章，探索完整的内容归档',
+};
 
 export default function ArchivePage() {
   // Group posts by year and month
@@ -12,13 +18,11 @@ export default function ArchivePage() {
     const month = date.toLocaleDateString('zh-CN', { month: 'long' });
     const key = `${year}-${month}`;
 
-    if (!acc[key]) {
-      acc[key] = {
-        year,
-        month,
-        posts: [],
-      };
-    }
+    acc[key] ??= {
+      year,
+      month,
+      posts: [],
+    };
     acc[key].posts.push(post);
     return acc;
   }, {} as Record<string, { year: number; month: string; posts: typeof mockPosts }>);
@@ -70,7 +74,7 @@ export default function ArchivePage() {
 
                 {/* Posts List */}
                 <div className="space-y-4 pl-0 md:pl-4">
-                  {group.posts.map((post, postIndex) => (
+                  {group.posts.map((post) => (
                     <Link
                       key={post.id}
                       href={`/post/${post.slug}`}

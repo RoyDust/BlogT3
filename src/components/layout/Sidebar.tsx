@@ -43,6 +43,7 @@ export function Sidebar() {
                 alt={profile.name}
                 fill
                 className="object-cover"
+                sizes="96px"
               />
             </div>
 

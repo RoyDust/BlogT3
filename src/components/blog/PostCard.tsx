@@ -103,7 +103,7 @@ export function PostCard({ post, className = '' }: PostCardProps) {
             "
               />
             </div>
-            <Image src={post.coverImage!} alt={post.title} fill className="object-cover" />
+            <Image src={post.coverImage!} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 28vw, 400px" />
           </Link>
         )}
 

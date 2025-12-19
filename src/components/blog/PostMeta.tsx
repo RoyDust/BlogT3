@@ -61,7 +61,7 @@ export function PostMeta({
       )}
 
       {/* Word Count & Reading Time */}
-      {(wordCount || readingTime) && (
+      {(wordCount ?? readingTime) && (
         <div className="flex items-center gap-1.5 text-50">
           <Clock className="h-4 w-4" />
           {wordCount && <span>{wordCount} 字</span>}

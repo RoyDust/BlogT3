@@ -1,8 +1,14 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Github, Twitter, Mail, Globe, Heart } from 'lucide-react';
 import { MainLayout } from '~/components/layout/MainLayout';
 import { mockProfile, mockCategories, mockPosts } from '~/lib/mock-data';
+
+export const metadata: Metadata = {
+  title: '关于 - BlogT3',
+  description: mockProfile.bio,
+};
 
 export default function AboutPage() {
   return (
@@ -17,6 +23,7 @@ export default function AboutPage() {
               alt={mockProfile.name}
               fill
               className="object-cover"
+              sizes="128px"
               priority
             />
           </div>

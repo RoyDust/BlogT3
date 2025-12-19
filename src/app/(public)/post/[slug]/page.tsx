@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Clock, Eye, ChevronLeft } from 'lucide-react';
@@ -8,6 +9,31 @@ import { mockPosts } from '~/lib/mock-data';
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = mockPosts.find((p) => p.slug === slug);
+
+  if (!post) {
+    return {
+      title: '文章未找到 - BlogT3',
+    };
+  }
+
+  return {
+    title: `${post.title} - BlogT3`,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: 'article',
+      publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt,
+      authors: [post.author.name],
+      images: post.coverImage ? [post.coverImage] : [],
+    },
+  };
 }
 
 export default async function PostPage({ params }: PostPageProps) {
@@ -104,6 +130,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 alt={post.title}
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
                 priority
               />
             </div>
@@ -131,6 +158,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 alt={post.author.name}
                 fill
                 className="object-cover"
+                sizes="64px"
               />
             </div>
             <div>

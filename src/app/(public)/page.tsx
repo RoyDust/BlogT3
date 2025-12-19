@@ -1,8 +1,14 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { MainLayout } from '~/components/layout/MainLayout';
 import { PostCard } from '~/components/blog/PostCard';
 import { mockCategories, mockPosts } from '~/lib/mock-data';
+
+export const metadata: Metadata = {
+  title: 'BlogT3 - 现代化博客平台',
+  description: '基于 Next.js 15 和 Supabase 构建的现代化博客平台，采用 RealBlog (Fuwari) 设计系统，支持动态主题和 OKLCH 色彩空间',
+};
 
 export default function HomePage() {
   // Get 3 most recent posts
