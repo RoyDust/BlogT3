@@ -5,10 +5,20 @@
 
   .card-base {
     @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg)] transition-all;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03),
+                0 2px 6px rgba(0, 0, 0, 0.02),
+                0 4px 12px rgba(0, 0, 0, 0.01);
+  }
+
+  .card-base:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04),
+                0 4px 12px rgba(0, 0, 0, 0.03),
+                0 8px 24px rgba(0, 0, 0, 0.02);
   }
 
   .card-shadow {
-    @apply drop-shadow-[0_2px_4px_rgba(0,0,0,0.005)];
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.005),
+                0 4px 8px rgba(0, 0, 0, 0.01);
   }
 
   /* ============================================
