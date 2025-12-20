@@ -179,6 +179,9 @@ importers:
       react-markdown-editor-lite:
         specifier: ^1.3.4
         version: 1.3.4(react@19.2.3)
+      react-masonry-css:
+        specifier: ^1.0.16
+        version: 1.0.16(react@19.2.3)
       react-resizable-panels:
         specifier: ^4.0.11
         version: 4.0.11(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -200,6 +203,9 @@ importers:
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      yet-another-react-lightbox:
+        specifier: ^3.27.0
+        version: 3.27.0(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       zod:
         specifier: ^3.24.2
         version: 3.25.76
@@ -3257,6 +3263,11 @@ packages:
       '@types/react': '>=18'
       react: '>=18'
 
+  react-masonry-css@1.0.16:
+    resolution: {integrity: sha512-KSW0hR2VQmltt/qAa3eXOctQDyOu7+ZBevtKgpNDSzT7k5LA/0XntNa9z9HKCdz3QlxmJHglTZ18e4sX4V8zZQ==}
+    peerDependencies:
+      react: '>=16.0.0'
+
   react-remove-scroll-bar@2.3.8:
     resolution: {integrity: sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==}
     engines: {node: '>=10'}
@@ -3706,6 +3717,20 @@ packages:
       bufferutil:
         optional: true
       utf-8-validate:
+        optional: true
+
+  yet-another-react-lightbox@3.27.0:
+    resolution: {integrity: sha512-SV4U0s7vZfwNWPOqyEP81VyquBu/7m9mVJhKEAgWTWUpsIRD6FFLn5+9RvJ4N0wMrxr7v517GzUNqoDPC2EdHg==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@types/react': ^16 || ^17 || ^18 || ^19
+      '@types/react-dom': ^16 || ^17 || ^18 || ^19
+      react: ^16.8.0 || ^17 || ^18 || ^19
+      react-dom: ^16.8.0 || ^17 || ^18 || ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
         optional: true
 
   yocto-queue@0.1.0:
@@ -6953,6 +6978,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  react-masonry-css@1.0.16(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+
   react-remove-scroll-bar@2.3.8(@types/react@19.2.7)(react@19.2.3):
     dependencies:
       react: 19.2.3
@@ -7575,6 +7604,14 @@ snapshots:
   word-wrap@1.2.5: {}
 
   ws@8.18.3: {}
+
+  yet-another-react-lightbox@3.27.0(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    optionalDependencies:
+      '@types/react': 19.2.7
+      '@types/react-dom': 19.2.3(@types/react@19.2.7)
 
   yocto-queue@0.1.0: {}
 
