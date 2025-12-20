@@ -16,7 +16,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" className={`${GeistSans.variable}`} suppressHydrationWarning>
+    <html
+      lang="zh-CN"
+      className={`${GeistSans.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Theme initialization script to prevent flash */}
         <script
