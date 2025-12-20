@@ -21,7 +21,7 @@ export default function DeletePostButton({
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from("posts").delete().eq("id", postId);
+      const { error } = await supabase.from("Post").delete().eq("id", postId);
 
       if (error) throw error;
 

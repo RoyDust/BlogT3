@@ -4,7 +4,7 @@ import DeleteCategoryButton from "./_components/DeleteCategoryButton";
 
 export default async function CategoriesPage() {
   const { data: categories } = await supabase
-    .from("categories")
+    .from("Category")
     .select("*")
     .order("name");
 

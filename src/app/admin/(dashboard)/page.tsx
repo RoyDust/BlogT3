@@ -4,28 +4,28 @@ import Link from "next/link";
 export default async function AdminDashboard() {
   // 获取统计数据
   const { count: totalPosts } = await supabase
-    .from("posts")
+    .from("Post")
     .select("*", { count: "exact", head: true });
 
   const { count: publishedPosts } = await supabase
-    .from("posts")
+    .from("Post")
     .select("*", { count: "exact", head: true })
-    .eq("status", "published");
+    .eq("status", "PUBLISHED");
 
   const { count: draftPosts } = await supabase
-    .from("posts")
+    .from("Post")
     .select("*", { count: "exact", head: true })
-    .eq("status", "draft");
+    .eq("status", "DRAFT");
 
   const { count: totalCategories } = await supabase
-    .from("categories")
+    .from("Category")
     .select("*", { count: "exact", head: true });
 
   // 获取最近的文章
   const { data: recentPosts } = await supabase
-    .from("posts")
-    .select("id, title, status, created_at")
-    .order("created_at", { ascending: false })
+    .from("Post")
+    .select("id, title, status, createdAt")
+    .order("createdAt", { ascending: false })
     .limit(5);
 
   const stats = [
@@ -117,16 +117,16 @@ export default async function AdminDashboard() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                          post.status === "published"
+                          post.status === "PUBLISHED"
                             ? "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
-                        {post.status === "published" ? "已发布" : "草稿"}
+                        {post.status === "PUBLISHED" ? "已发布" : "草稿"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600" suppressHydrationWarning>
-                      {new Date(String(post.created_at ?? new Date())).toLocaleDateString("zh-CN")}
+                      {new Date(String(post.createdAt ?? new Date())).toLocaleDateString("zh-CN")}
                     </td>
                   </tr>
                 ))}

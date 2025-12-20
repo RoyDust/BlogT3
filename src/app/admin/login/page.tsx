@@ -1,16 +1,33 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // 如果已登录，重定向到管理后台
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/admin");
+    }
+  }, [status, router]);
+
+  // 如果正在检查登录状态，显示加载中
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
+        <div className="text-slate-600">加载中...</div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,10 +119,19 @@ export default function LoginPage() {
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 space-y-3 text-center">
+            <p className="text-sm text-slate-600">
+              还没有账号？{" "}
+              <Link
+                href="/admin/register"
+                className="font-medium text-blue-600 hover:text-blue-700"
+              >
+                立即注册
+              </Link>
+            </p>
             <Link
               href="/"
-              className="text-sm text-slate-600 hover:text-blue-600"
+              className="block text-sm text-slate-600 hover:text-blue-600"
             >
               ← 返回首页
             </Link>

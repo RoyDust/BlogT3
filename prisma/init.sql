@@ -163,7 +163,7 @@ COMMENT ON TABLE "VerificationToken" IS '验证令牌表：用于邮箱验证和
 
 -- 分类表
 CREATE TABLE IF NOT EXISTS "Category" (
-    "id" TEXT PRIMARY KEY,
+    "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     "name" TEXT NOT NULL UNIQUE,
     "slug" TEXT NOT NULL UNIQUE,
     "description" TEXT,

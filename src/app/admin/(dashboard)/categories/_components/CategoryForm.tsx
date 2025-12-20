@@ -36,7 +36,7 @@ export default function CategoryForm() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("categories").insert([formData]);
+      const { error } = await supabase.from("Category").insert([formData]);
 
       if (error) throw error;
 

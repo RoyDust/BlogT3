@@ -26,7 +26,7 @@ export default function DeleteCategoryButton({
     setIsDeleting(true);
     try {
       const { error } = await supabase
-        .from("categories")
+        .from("Category")
         .delete()
         .eq("id", categoryId);
 

@@ -43,16 +43,16 @@ export default function PostEditorPage({
     slug: "",
     content: "",
     excerpt: "",
-    cover_image: "",
-    category_id: "",
-    status: "draft",
+    coverImage: "",
+    categoryId: "",
+    status: "DRAFT",
   });
 
   // 加载分类
   useEffect(() => {
     async function loadCategories() {
       const { data } = await supabase
-        .from("categories")
+        .from("Category")
         .select("*")
         .order("name");
       if (data) setCategories(data);
@@ -65,7 +65,7 @@ export default function PostEditorPage({
     if (postId) {
       async function loadPost() {
         const { data } = await supabase
-          .from("posts")
+          .from("Post")
           .select("*")
           .eq("id", postId)
           .single();
@@ -76,9 +76,9 @@ export default function PostEditorPage({
             slug: data.slug ?? "",
             content: data.content ?? "",
             excerpt: data.excerpt ?? "",
-            cover_image: data.cover_image ?? "",
-            category_id: data.category_id ?? "",
-            status: data.status ?? "draft",
+            coverImage: data.coverImage ?? "",
+            categoryId: data.categoryId ?? "",
+            status: data.status ?? "DRAFT",
           });
         }
       }
@@ -109,10 +109,24 @@ export default function PostEditorPage({
     setLoading(true);
 
     try {
+      // 获取或创建默认用户
+      let authorId = "default-author-id";
+
+      // 尝试获取第一个用户作为作者
+      const { data: users } = await supabase
+        .from("User")
+        .select("id")
+        .limit(1);
+
+      if (users && users.length > 0 && users[0]) {
+        authorId = users[0].id;
+      }
+
       const postData = {
         ...formData,
         status,
-        published_at: status === "published" ? new Date().toISOString() : null,
+        authorId,
+        publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
       };
 
       console.log(postData);
@@ -120,14 +134,14 @@ export default function PostEditorPage({
       if (postId) {
         // 更新文章
         const { error } = await supabase
-          .from("posts")
+          .from("Post")
           .update(postData)
           .eq("id", postId);
 
         if (error) throw error;
       } else {
         // 创建新文章
-        const { error } = await supabase.from("posts").insert([postData]);
+        const { error } = await supabase.from("Post").insert([postData]);
         if (error) throw error;
       }
 
@@ -226,7 +240,7 @@ export default function PostEditorPage({
               <div className="mt-4 space-y-3">
                 <button
                   type="button"
-                  onClick={(e) => handleSubmit(e, "draft")}
+                  onClick={(e) => handleSubmit(e, "DRAFT")}
                   disabled={loading}
                   className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
@@ -234,7 +248,7 @@ export default function PostEditorPage({
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => handleSubmit(e, "published")}
+                  onClick={(e) => handleSubmit(e, "PUBLISHED")}
                   disabled={loading}
                   className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
@@ -249,11 +263,11 @@ export default function PostEditorPage({
                 分类
               </label>
               <select
-                value={formData.category_id}
+                value={formData.categoryId}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    category_id: e.target.value,
+                    categoryId: e.target.value,
                   }))
                 }
                 className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -274,20 +288,20 @@ export default function PostEditorPage({
               </label>
               <input
                 type="url"
-                value={formData.cover_image}
+                value={formData.coverImage}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    cover_image: e.target.value,
+                    coverImage: e.target.value,
                   }))
                 }
                 className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder="https://example.com/image.jpg"
               />
-              {formData.cover_image && (
+              {formData.coverImage && (
                 <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg bg-slate-100">
                   <Image
-                    src={formData.cover_image}
+                    src={formData.coverImage}
                     alt="封面预览"
                     fill
                     sizes="400px"

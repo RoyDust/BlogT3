@@ -1,6 +1,7 @@
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 import AdminNav from "./_components/AdminNav";
+import LogoutButton from "./_components/LogoutButton";
 
 export default async function AdminLayout({
   children,
@@ -41,6 +42,7 @@ export default async function AdminLayout({
               >
                 查看网站
               </a>
+              <LogoutButton />
             </div>
           </div>
         </header>

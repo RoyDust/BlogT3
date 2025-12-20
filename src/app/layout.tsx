@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/ui/ThemeProvider";
 import { BackToTop } from "~/components/ui/BackToTop";
+import { SessionProvider } from "~/components/providers/SessionProvider";
 import { getThemeInitScript } from "~/lib/theme-utils";
 
 export const metadata: Metadata = {
@@ -30,10 +31,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ThemeProvider>
-          {children}
-          <BackToTop />
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider>
+            {children}
+            <BackToTop />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
