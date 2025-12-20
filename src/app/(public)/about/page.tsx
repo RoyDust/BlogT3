@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <MainLayout showSidebar={false}>
-      <div className="space-y-4 max-w-4xl mx-auto">
+    <MainLayout showSidebar={true}>
+      <div className="space-y-4">
         {/* Profile Card */}
         <div className="card-base p-8 md:p-12 onload-animation text-center">
           {/* Avatar */}
