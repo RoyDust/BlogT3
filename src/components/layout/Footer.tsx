@@ -1,33 +1,41 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import React from "react";
+import Link from "next/link";
+import { Heart } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer id="footer" className="onload-animation mt-auto">
-      <div className="max-w-[var(--page-width)] mx-auto px-4 py-8">
+      <div className="mx-auto max-w-[var(--page-width)] py-8">
         <div className="card-base p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             {/* Left: Copyright */}
-            <div className="flex items-center gap-2 text-75 text-sm">
+            <div className="text-75 flex items-center gap-2 text-sm">
               <span>© {currentYear} BlogT3</span>
               <span className="text-50">·</span>
               <span className="flex items-center gap-1">
-                Made with <Heart className="h-4 w-4 text-red-500 fill-current" /> by Zhang Wei
+                Made with{" "}
+                <Heart className="h-4 w-4 fill-current text-red-500" /> by Zhang
+                Wei
               </span>
             </div>
 
             {/* Right: Links */}
-            <div className="flex items-center gap-4 text-75 text-sm">
-              <Link href="/about" className="hover:text-[var(--primary)] transition">
+            <div className="text-75 flex items-center gap-4 text-sm">
+              <Link
+                href="/about"
+                className="transition hover:text-[var(--primary)]"
+              >
                 关于
               </Link>
               <span className="text-50">·</span>
-              <Link href="/rss.xml" className="hover:text-[var(--primary)] transition">
+              <Link
+                href="/rss.xml"
+                className="transition hover:text-[var(--primary)]"
+              >
                 RSS
               </Link>
               <span className="text-50">·</span>
@@ -35,7 +43,7 @@ export function Footer() {
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[var(--primary)] transition"
+                className="transition hover:text-[var(--primary)]"
               >
                 GitHub
               </a>
@@ -43,9 +51,9 @@ export function Footer() {
           </div>
 
           {/* Bottom: Tech Stack */}
-          <div className="mt-4 pt-4 border-t border-dashed border-[var(--line-color)] text-center">
+          <div className="mt-4 border-t border-dashed border-[var(--line-color)] pt-4 text-center">
             <p className="text-50 text-xs">
-              Powered by{' '}
+              Powered by{" "}
               <a
                 href="https://nextjs.org"
                 target="_blank"
@@ -54,7 +62,7 @@ export function Footer() {
               >
                 Next.js
               </a>
-              {' · '}
+              {" · "}
               <a
                 href="https://supabase.com"
                 target="_blank"
@@ -63,7 +71,7 @@ export function Footer() {
               >
                 Supabase
               </a>
-              {' · '}
+              {" · "}
               <a
                 href="https://tailwindcss.com"
                 target="_blank"
@@ -73,8 +81,8 @@ export function Footer() {
                 Tailwind CSS
               </a>
             </p>
-            <p className="text-50 text-xs mt-1">
-              基于{' '}
+            <p className="text-50 mt-1 text-xs">
+              基于{" "}
               <a
                 href="https://github.com/saicaca/fuwari"
                 target="_blank"
@@ -82,8 +90,8 @@ export function Footer() {
                 className="text-[var(--primary)] hover:underline"
               >
                 RealBlog (Fuwari)
-              </a>
-              {' '}设计系统
+              </a>{" "}
+              设计系统
             </p>
           </div>
         </div>
