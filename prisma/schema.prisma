@@ -11,36 +11,97 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// ============================================================================
+// 枚举类型
+// ============================================================================
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
+enum UserRole {
+    USER
+    ADMIN
+    MODERATOR
 }
 
-// Necessary for Next auth
+enum UserStatus {
+    ACTIVE
+    BANNED
+    DELETED
+}
+
+enum PostStatus {
+    DRAFT
+    PUBLISHED
+    ARCHIVED
+}
+
+enum CommentStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+enum GalleryStatus {
+    DRAFT
+    PUBLISHED
+    ARCHIVED
+}
+
+enum LikeTargetType {
+    POST
+    COMMENT
+    GALLERY
+}
+
+// ============================================================================
+// 用户系统
+// ============================================================================
+
+model User {
+    id            String    @id @default(cuid())
+    email         String    @unique
+    emailVerified DateTime?
+    name          String?
+    password      String?
+    avatar        String?
+    bio           String?
+    role          UserRole     @default(USER)
+    status        UserStatus   @default(ACTIVE)
+    createdAt     DateTime     @default(now())
+    updatedAt     DateTime     @updatedAt
+
+    // 关系（应用层维护）
+    accounts      Account[]
+    sessions      Session[]
+    posts         Post[]       @relation("UserPosts")
+    galleries     PhotoGallery[] @relation("UserGalleries")
+    comments      Comment[]    @relation("UserComments")
+    likes         Like[]       @relation("UserLikes")
+    postViews     PostView[]   @relation("UserViews")
+
+    @@index([email])
+    @@index([role, status])
+    @@map("User")
+}
+
 model Account {
     id                       String  @id @default(cuid())
     userId                   String
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String? @db.Text
-    access_token             String? @db.Text
+    refresh_token            String?
+    access_token             String?
     expires_at               Int?
     token_type               String?
     scope                    String?
-    id_token                 String? @db.Text
+    id_token                 String?
     session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     refresh_token_expires_in Int?
 
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
     @@unique([provider, providerAccountId])
+    @@index([userId])
+    @@map("Account")
 }
 
 model Session {
@@ -48,18 +109,12 @@ model Session {
     sessionToken String   @unique
     userId       String
     expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
-model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([expires])
+    @@map("Session")
 }
 
 model VerificationToken {
@@ -68,4 +123,233 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+    @@index([expires])
+    @@map("VerificationToken")
+}
+
+// ============================================================================
+// 博客系统
+// ============================================================================
+
+model Category {
+    id          String   @id @default(cuid())
+    name        String   @unique
+    slug        String   @unique
+    description String?
+    color       String   @default("#3b82f6")
+    icon        String?
+    postCount   Int      @default(0)
+    sortOrder   Int      @default(0)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    // 关系
+    posts Post[] @relation("CategoryPosts")
+
+    @@index([sortOrder])
+    @@map("Category")
+}
+
+model Tag {
+    id           String   @id @default(cuid())
+    name         String   @unique
+    slug         String   @unique
+    postCount    Int      @default(0)
+    galleryCount Int      @default(0)
+    createdAt    DateTime @default(now())
+
+    // 关系
+    postTags    PostTag[]    @relation("TagPosts")
+    galleryTags GalleryTag[] @relation("TagGalleries")
+
+    @@index([postCount])
+    @@map("Tag")
+}
+
+model Post {
+    id           String     @id @default(cuid())
+    slug         String     @unique
+    title        String
+    excerpt      String?
+    content      String
+    coverImage   String?
+    status       PostStatus @default(DRAFT)
+    featured     Boolean    @default(false)
+    viewCount    Int        @default(0)
+    likeCount    Int        @default(0)
+    commentCount Int        @default(0)
+    wordCount    Int        @default(0)
+    readingTime  Int        @default(0)
+    publishedAt  DateTime?
+    authorId     String
+    categoryId   String
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    // 关系
+    author   User        @relation("UserPosts", fields: [authorId], references: [id])
+    category Category    @relation("CategoryPosts", fields: [categoryId], references: [id])
+    tags     PostTag[]   @relation("PostTags")
+    comments Comment[]   @relation("PostComments")
+    likes    Like[]      @relation("PostLikes")
+    views    PostView[]  @relation("PostViews")
+
+    @@index([slug])
+    @@index([authorId])
+    @@index([categoryId])
+    @@index([status, publishedAt])
+    @@index([featured, publishedAt])
+    @@index([likeCount])
+    @@map("Post")
+}
+
+model PostTag {
+    postId    String
+    tagId     String
+    createdAt DateTime @default(now())
+
+    post Post @relation("PostTags", fields: [postId], references: [id], onDelete: Cascade)
+    tag  Tag  @relation("TagPosts", fields: [tagId], references: [id], onDelete: Cascade)
+
+    @@id([postId, tagId])
+    @@index([tagId])
+    @@map("PostTag")
+}
+
+model Comment {
+    id          String        @id @default(cuid())
+    content     String
+    postId      String
+    authorId    String?
+    authorName  String?
+    authorEmail String?
+    parentId    String?
+    status      CommentStatus @default(PENDING)
+    likeCount   Int           @default(0)
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+
+    // 关系
+    post   Post      @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+    author User?     @relation("UserComments", fields: [authorId], references: [id])
+    parent Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+    replies Comment[] @relation("CommentReplies")
+    likes  Like[]    @relation("CommentLikes")
+
+    @@index([postId, status, createdAt])
+    @@index([authorId])
+    @@index([parentId])
+    @@index([status])
+    @@map("Comment")
+}
+
+model Like {
+    id         String         @id @default(cuid())
+    userId     String
+    targetType LikeTargetType
+    targetId   String
+    createdAt  DateTime       @default(now())
+
+    // 关系
+    user    User          @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+    post    Post?         @relation("PostLikes", fields: [targetId], references: [id], onDelete: Cascade)
+    comment Comment?      @relation("CommentLikes", fields: [targetId], references: [id], onDelete: Cascade)
+    gallery PhotoGallery? @relation("GalleryLikes", fields: [targetId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, targetType, targetId])
+    @@index([targetType, targetId])
+    @@index([userId])
+    @@map("Like")
+}
+
+model PostView {
+    id         String   @id @default(cuid())
+    postId     String
+    viewerIp   String?
+    viewerId   String?
+    userAgent  String?
+    referer    String?
+    viewedAt   DateTime @default(now())
+
+    // 关系
+    post   Post  @relation("PostViews", fields: [postId], references: [id], onDelete: Cascade)
+    viewer User? @relation("UserViews", fields: [viewerId], references: [id])
+
+    @@index([postId, viewedAt])
+    @@index([viewerId])
+    @@index([viewedAt])
+    @@map("PostView")
+}
+
+// ============================================================================
+// 摄影系统
+// ============================================================================
+
+model PhotoGallery {
+    id              String        @id @default(cuid())
+    title           String
+    slug            String        @unique
+    description     String?
+    coverImage      String?
+    coverImageThumb String?
+    status          GalleryStatus @default(DRAFT)
+    featured        Boolean       @default(false)
+    viewCount       Int           @default(0)
+    likeCount       Int           @default(0)
+    imageCount      Int           @default(0)
+    captureDate     DateTime?
+    location        String?
+    camera          String?
+    lens            String?
+    authorId        String
+    publishedAt     DateTime?
+    createdAt       DateTime      @default(now())
+    updatedAt       DateTime      @updatedAt
+
+    // 关系
+    author User         @relation("UserGalleries", fields: [authorId], references: [id])
+    images PhotoImage[] @relation("GalleryImages")
+    tags   GalleryTag[] @relation("GalleryTags")
+    likes  Like[]       @relation("GalleryLikes")
+
+    @@index([slug])
+    @@index([authorId])
+    @@index([status, publishedAt])
+    @@index([featured, publishedAt])
+    @@index([likeCount])
+    @@map("PhotoGallery")
+}
+
+model PhotoImage {
+    id        String   @id @default(cuid())
+    galleryId String
+    url       String
+    thumbnail String
+    alt       String?
+    width     Int?
+    height    Int?
+    fileSize  Int?
+    mimeType  String?
+    exifData  Json?
+    sortOrder Int      @default(0)
+    createdAt DateTime @default(now())
+
+    // 关系
+    gallery PhotoGallery @relation("GalleryImages", fields: [galleryId], references: [id], onDelete: Cascade)
+
+    @@index([galleryId, sortOrder])
+    @@map("PhotoImage")
+}
+
+model GalleryTag {
+    galleryId String
+    tagId     String
+    createdAt DateTime @default(now())
+
+    gallery PhotoGallery @relation("GalleryTags", fields: [galleryId], references: [id], onDelete: Cascade)
+    tag     Tag          @relation("TagGalleries", fields: [tagId], references: [id], onDelete: Cascade)
+
+    @@id([galleryId, tagId])
+    @@index([tagId])
+    @@map("GalleryTag")
 }

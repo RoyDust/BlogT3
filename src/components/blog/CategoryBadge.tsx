@@ -5,18 +5,20 @@ interface CategoryBadgeProps {
   category: {
     name: string;
     slug: string;
-    color: string;
+    color?: string;
   };
   showLink?: boolean;
 }
 
 export function CategoryBadge({ category, showLink = true }: CategoryBadgeProps) {
+  const color = category.color || '#3b82f6'; // 默认蓝色
+
   const badgeContent = (
     <span
       className="inline-block rounded-full px-3 py-1 text-xs font-medium transition-all hover:scale-105"
       style={{
-        backgroundColor: category.color + '20',
-        color: category.color,
+        backgroundColor: `${color}15`, // 10% 透明度背景
+        color: color,
       }}
     >
       {category.name}

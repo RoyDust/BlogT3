@@ -6,12 +6,12 @@ import { CategoryBadge } from './CategoryBadge';
 interface PostMetaProps {
   publishedAt: string;
   updatedAt?: string;
-  category: {
+  category?: {
     name: string;
     slug: string;
-    color: string;
+    color?: string;
   };
-  tags: Array<{
+  tags?: Array<{
     name: string;
     slug: string;
   }>;
@@ -44,7 +44,7 @@ export function PostMeta({
   return (
     <div className={`flex flex-wrap items-center gap-3 text-sm ${className}`}>
       {/* Category */}
-      <CategoryBadge category={category} />
+      {category && <CategoryBadge category={category} />}
 
       {/* Published Date */}
       <div className="flex items-center gap-1.5 text-75">

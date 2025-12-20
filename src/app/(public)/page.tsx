@@ -3,16 +3,56 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { MainLayout } from '~/components/layout/MainLayout';
 import { PostCard } from '~/components/blog/PostCard';
-import { mockCategories, mockPosts } from '~/lib/mock-data';
+import { getPosts } from '~/server/actions/posts';
+import { supabase } from '~/lib/supabase';
 
 export const metadata: Metadata = {
   title: 'BlogT3 - 现代化博客平台',
   description: '基于 Next.js 15 和 Supabase 构建的现代化博客平台，采用 RealBlog (Fuwari) 设计系统，支持动态主题和 OKLCH 色彩空间',
 };
 
-export default function HomePage() {
+export default async function HomePage() {
   // Get 3 most recent posts
-  const recentPosts = mockPosts.slice(0, 3);
+  const postsResult = await getPosts({
+    status: 'PUBLISHED',
+    limit: 3,
+    orderBy: 'publishedAt',
+    order: 'desc'
+  });
+  const posts = postsResult.success ? postsResult.data ?? [] : [];
+
+  // Get categories for posts
+  const categoryIds = [...new Set(posts.map(p => p.categoryId))];
+  const { data: categories } = await supabase
+    .from('Category')
+    .select('id, name, slug')
+    .in('id', categoryIds);
+  const categoryMap = new Map(categories?.map(c => [c.id, c]) ?? []);
+
+  // Enrich posts with category data
+  const recentPosts = posts.map(post => ({
+    ...post,
+    category: categoryMap.get(post.categoryId),
+    tags: [], // We'll skip tags for now on the home page
+  }));
+
+  // Get all categories with post counts
+  const { data: allCategories } = await supabase
+    .from('Category')
+    .select('id, name, slug, description')
+    .order('name');
+
+  // Get post counts for each category
+  const categoriesWithCounts = await Promise.all(
+    (allCategories ?? []).map(async (category) => {
+      const { count } = await supabase
+        .from('Post')
+        .select('*', { count: 'exact', head: true })
+        .eq('categoryId', category.id)
+        .eq('status', 'PUBLISHED');
+      return { ...category, count: count ?? 0 };
+    })
+  );
 
   return (
     <MainLayout>
@@ -58,15 +98,11 @@ export default function HomePage() {
         <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '250ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-6">分类浏览</h2>
           <div className="flex flex-wrap gap-3">
-            {mockCategories.map((category) => (
+            {categoriesWithCounts.map((category) => (
               <Link
                 key={category.slug}
                 href={`/blog?category=${category.slug}`}
-                className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105"
-                style={{
-                  backgroundColor: category.color + '20',
-                  color: category.color,
-                }}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 bg-[var(--btn-content)] hover:bg-[var(--btn-content-hover)] text-[var(--primary)]"
               >
                 {category.name} ({category.count})
               </Link>
