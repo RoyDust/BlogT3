@@ -66,12 +66,23 @@ export default async function PostPage({ params }: PostPageProps) {
     .single();
 
   // Get tags
+  type Tag = {
+    id: string;
+    name: string;
+    slug: string;
+  };
+
+  type PostTagWithTag = {
+    tagId: string;
+    Tag: Tag | null;
+  };
+
   const { data: postTags } = await supabase
     .from('PostTag')
     .select('tagId, Tag(*)')
     .eq('postId', post.id);
 
-  const tags = postTags?.map((pt) => pt.Tag).filter(Boolean) ?? [];
+  const tags = (postTags as PostTagWithTag[] | null)?.map((pt) => pt.Tag).filter((tag): tag is Tag => tag !== null) ?? [];
 
   // Get prev/next posts
   const allPostsResult = await getPosts({
@@ -154,7 +165,7 @@ export default async function PostPage({ params }: PostPageProps) {
           {/* Tags */}
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-8">
-              {tags.map((tag: any) => (
+              {tags.map((tag) => (
                 <Link
                   key={tag.slug}
                   href={`/blog?tag=${tag.slug}`}

@@ -1,36 +1,50 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { MainLayout } from '~/components/layout/MainLayout';
-import { PostCard } from '~/components/blog/PostCard';
-import { getPosts } from '~/server/actions/posts';
-import { supabase } from '~/lib/supabase';
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { MainLayout } from "~/components/layout/MainLayout";
+import { PostCard } from "~/components/blog/PostCard";
+import { getPosts } from "~/server/actions/posts";
+import { supabase } from "~/lib/supabase";
 
 export const metadata: Metadata = {
-  title: 'BlogT3 - 现代化博客平台',
-  description: '基于 Next.js 15 和 Supabase 构建的现代化博客平台，采用 RealBlog (Fuwari) 设计系统，支持动态主题和 OKLCH 色彩空间',
+  title: "BlogT3 - 现代化博客平台",
+  description:
+    "基于 Next.js 15 和 Supabase 构建的现代化博客平台，采用 RealBlog (Fuwari) 设计系统，支持动态主题和 OKLCH 色彩空间",
 };
 
 export default async function HomePage() {
+  // Define types
+  type Category = {
+    id: string;
+    name: string;
+    slug: string;
+    color?: string;
+  };
+
   // Get 3 most recent posts
   const postsResult = await getPosts({
-    status: 'PUBLISHED',
+    status: "PUBLISHED",
     limit: 3,
-    orderBy: 'publishedAt',
-    order: 'desc'
+    orderBy: "publishedAt",
+    order: "desc",
   });
-  const posts = postsResult.success ? postsResult.data ?? [] : [];
+  const posts = postsResult.success ? (postsResult.data ?? []) : [];
 
   // Get categories for posts
-  const categoryIds = [...new Set(posts.map(p => p.categoryId))];
+  const categoryIds = [
+    ...new Set(posts.map((p: any) => p.categoryId)),
+  ] as string[];
   const { data: categories } = await supabase
-    .from('Category')
-    .select('id, name, slug')
-    .in('id', categoryIds);
-  const categoryMap = new Map(categories?.map(c => [c.id, c]) ?? []);
+    .from("Category")
+    .select("id, name, slug, color")
+    .in("id", categoryIds);
+
+  const categoryMap = new Map<string, Category>(
+    categories?.map((c) => [c.id, c as Category]) ?? [],
+  );
 
   // Enrich posts with category data
-  const recentPosts = posts.map(post => ({
+  const recentPosts = posts.map((post) => ({
     ...post,
     category: categoryMap.get(post.categoryId),
     tags: [], // We'll skip tags for now on the home page
@@ -38,31 +52,31 @@ export default async function HomePage() {
 
   // Get all categories with post counts
   const { data: allCategories } = await supabase
-    .from('Category')
-    .select('id, name, slug, description')
-    .order('name');
+    .from("Category")
+    .select("id, name, slug, description")
+    .order("name");
 
   // Get post counts for each category
   const categoriesWithCounts = await Promise.all(
     (allCategories ?? []).map(async (category) => {
       const { count } = await supabase
-        .from('Post')
-        .select('*', { count: 'exact', head: true })
-        .eq('categoryId', category.id)
-        .eq('status', 'PUBLISHED');
+        .from("Post")
+        .select("*", { count: "exact", head: true })
+        .eq("categoryId", category.id)
+        .eq("status", "PUBLISHED");
       return { ...category, count: count ?? 0 };
-    })
+    }),
   );
 
   return (
     <MainLayout>
       <div className="space-y-8">
         {/* Hero Section */}
-        <section className="card-base p-8 md:p-12 text-center onload-animation">
-          <h1 className="text-4xl md:text-5xl font-bold text-90 mb-4">
+        <section className="card-base onload-animation p-8 text-center md:p-12">
+          <h1 className="text-90 mb-4 text-4xl font-bold md:text-5xl">
             欢迎来到 BlogT3
           </h1>
-          <p className="text-75 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-75 mx-auto max-w-2xl text-lg leading-relaxed md:text-xl">
             基于 Next.js 15 和 Supabase 构建的现代化博客平台
             <br />
             采用 RealBlog (Fuwari) 设计系统
@@ -70,12 +84,15 @@ export default async function HomePage() {
         </section>
 
         {/* Recent Posts */}
-        <section className="space-y-4 onload-animation" style={{ animationDelay: '50ms' }}>
+        <section
+          className="onload-animation space-y-4"
+          style={{ animationDelay: "50ms" }}
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-90">最新文章</h2>
+            <h2 className="text-90 text-2xl font-bold">最新文章</h2>
             <Link
               href="/blog"
-              className="btn-plain scale-animation rounded-lg h-9 px-4 text-sm flex items-center gap-1"
+              className="btn-plain scale-animation flex h-9 items-center gap-1 rounded-lg px-4 text-sm"
             >
               查看全部
               <ArrowRight className="h-4 w-4" />
@@ -95,14 +112,17 @@ export default async function HomePage() {
         </section>
 
         {/* Categories */}
-        <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '250ms' }}>
-          <h2 className="text-2xl font-bold text-90 mb-6">分类浏览</h2>
+        <section
+          className="card-base onload-animation p-6 md:p-8"
+          style={{ animationDelay: "250ms" }}
+        >
+          <h2 className="text-90 mb-6 text-2xl font-bold">分类浏览</h2>
           <div className="flex flex-wrap gap-3">
             {categoriesWithCounts.map((category) => (
               <Link
                 key={category.slug}
                 href={`/blog?category=${category.slug}`}
-                className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 bg-[var(--btn-content)] hover:bg-[var(--btn-content-hover)] text-[var(--primary)]"
+                className="rounded-full bg-[var(--btn-content)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition-all hover:scale-105 hover:bg-[var(--btn-content-hover)]"
               >
                 {category.name} ({category.count})
               </Link>
@@ -111,50 +131,50 @@ export default async function HomePage() {
         </section>
 
         {/* Quick Links */}
-        <section className="grid md:grid-cols-3 gap-4 onload-animation" style={{ animationDelay: '300ms' }}>
+        <section
+          className="onload-animation grid gap-4 md:grid-cols-3"
+          style={{ animationDelay: "300ms" }}
+        >
           <Link
             href="/blog"
-            className="card-base p-6 hover:bg-[var(--btn-card-bg-hover)] transition group"
+            className="card-base group p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
           >
-            <h3 className="text-xl font-bold text-90 mb-2 group-hover:text-[var(--primary)] transition">
+            <h3 className="text-90 mb-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
               📝 博客文章
             </h3>
-            <p className="text-75 text-sm">
-              查看所有技术文章和教程
-            </p>
+            <p className="text-75 text-sm">查看所有技术文章和教程</p>
           </Link>
 
           <Link
             href="/archive"
-            className="card-base p-6 hover:bg-[var(--btn-card-bg-hover)] transition group"
+            className="card-base group p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
           >
-            <h3 className="text-xl font-bold text-90 mb-2 group-hover:text-[var(--primary)] transition">
+            <h3 className="text-90 mb-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
               📚 归档
             </h3>
-            <p className="text-75 text-sm">
-              按时间线浏览所有内容
-            </p>
+            <p className="text-75 text-sm">按时间线浏览所有内容</p>
           </Link>
 
           <Link
             href="/about"
-            className="card-base p-6 hover:bg-[var(--btn-card-bg-hover)] transition group"
+            className="card-base group p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
           >
-            <h3 className="text-xl font-bold text-90 mb-2 group-hover:text-[var(--primary)] transition">
+            <h3 className="text-90 mb-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
               👤 关于
             </h3>
-            <p className="text-75 text-sm">
-              了解更多关于作者的信息
-            </p>
+            <p className="text-75 text-sm">了解更多关于作者的信息</p>
           </Link>
         </section>
 
         {/* Features */}
-        <section className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '350ms' }}>
-          <h2 className="text-2xl font-bold text-90 mb-6">主要特性</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+        <section
+          className="card-base onload-animation p-6 md:p-8"
+          style={{ animationDelay: "350ms" }}
+        >
+          <h2 className="text-90 mb-6 text-2xl font-bold">主要特性</h2>
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <h3 className="font-bold text-90 flex items-center gap-2">
+              <h3 className="text-90 flex items-center gap-2 font-bold">
                 <span className="text-[var(--primary)]">🎨</span>
                 动态主题系统
               </h3>
@@ -164,7 +184,7 @@ export default async function HomePage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-bold text-90 flex items-center gap-2">
+              <h3 className="text-90 flex items-center gap-2 font-bold">
                 <span className="text-[var(--primary)]">⚡</span>
                 Next.js 15
               </h3>
@@ -174,7 +194,7 @@ export default async function HomePage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-bold text-90 flex items-center gap-2">
+              <h3 className="text-90 flex items-center gap-2 font-bold">
                 <span className="text-[var(--primary)]">🗄️</span>
                 Supabase
               </h3>
@@ -184,7 +204,7 @@ export default async function HomePage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-bold text-90 flex items-center gap-2">
+              <h3 className="text-90 flex items-center gap-2 font-bold">
                 <span className="text-[var(--primary)]">🎯</span>
                 TypeScript
               </h3>
@@ -196,23 +216,24 @@ export default async function HomePage() {
         </section>
 
         {/* Call to Action */}
-        <section className="card-base p-8 md:p-12 text-center onload-animation" style={{ animationDelay: '400ms' }}>
-          <h2 className="text-2xl font-bold text-90 mb-4">
-            开始探索
-          </h2>
-          <p className="text-75 mb-6 max-w-xl mx-auto">
+        <section
+          className="card-base onload-animation p-8 text-center md:p-12"
+          style={{ animationDelay: "400ms" }}
+        >
+          <h2 className="text-90 mb-4 text-2xl font-bold">开始探索</h2>
+          <p className="text-75 mx-auto mb-6 max-w-xl">
             点击右上角的主题控件，尝试切换明暗模式或调整主题色，体验完整的主题定制功能。
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/blog"
-              className="btn-regular scale-animation rounded-lg h-12 px-8 font-medium"
+              className="btn-regular scale-animation h-12 rounded-lg px-8 font-medium"
             >
               浏览文章
             </Link>
             <Link
               href="/theme-demo"
-              className="btn-plain scale-animation rounded-lg h-12 px-8 font-medium"
+              className="btn-plain scale-animation h-12 rounded-lg px-8 font-medium"
             >
               主题演示
             </Link>
