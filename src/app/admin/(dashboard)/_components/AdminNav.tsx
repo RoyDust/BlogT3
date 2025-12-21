@@ -8,6 +8,7 @@ const navigation = [
   { name: "仪表板", href: "/admin", icon: "📊" },
   { name: "文章管理", href: "/admin/posts", icon: "📝" },
   { name: "分类管理", href: "/admin/categories", icon: "📁" },
+  { name: "标签管理", href: "/admin/tags", icon: "🏷️" },
 ];
 
 export default function AdminNav() {

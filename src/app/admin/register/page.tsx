@@ -50,7 +50,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "注册失败，请重试");
+        setError(data.error ?? "注册失败，请重试");
         setLoading(false);
         return;
       }
