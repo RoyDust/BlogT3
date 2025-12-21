@@ -9,6 +9,7 @@ const navigation = [
   { name: "文章管理", href: "/admin/posts", icon: "📝" },
   { name: "分类管理", href: "/admin/categories", icon: "📁" },
   { name: "标签管理", href: "/admin/tags", icon: "🏷️" },
+  { name: "相册管理", href: "/admin/galleries", icon: "📷" },
 ];
 
 export default function AdminNav() {

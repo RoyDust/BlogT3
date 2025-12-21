@@ -3,91 +3,66 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "~/lib/supabase";
-import dynamic from "next/dynamic";
 import ImageUpload from "~/components/admin/ImageUpload";
 
-// 动态导入 RichTextEditor（避免 SSR 问题）
-const RichTextEditor = dynamic(() => import("~/components/RichTextEditor"), {
-  ssr: false,
-});
-
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-export default function PostEditorPage({
+export default function GalleryEditorPage({
   params,
 }: {
   params: Promise<{ id?: string }> | { id?: string };
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [postId, setPostId] = useState<string | undefined>(undefined);
+  const [galleryId, setGalleryId] = useState<string | undefined>(undefined);
+  const [formData, setFormData] = useState({
+    title: "",
+    slug: "",
+    description: "",
+    coverImage: "",
+    location: "",
+    captureDate: "",
+    status: "DRAFT",
+  });
 
   // 处理 params（可能是 Promise）
   useEffect(() => {
     async function loadParams() {
       const resolvedParams = await Promise.resolve(params);
       if (resolvedParams.id) {
-        setPostId(resolvedParams.id);
+        setGalleryId(resolvedParams.id);
       }
     }
     void loadParams();
   }, [params]);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    content: "",
-    excerpt: "",
-    coverImage: "",
-    categoryId: "",
-    status: "DRAFT",
-  });
-
-  // 加载分类
+  // 如果是编辑模式，加载相册数据
   useEffect(() => {
-    async function loadCategories() {
-      const { data } = await supabase
-        .from("Category")
-        .select("*")
-        .order("name");
-      if (data) setCategories(data);
-    }
-    void loadCategories();
-  }, []);
-
-  // 如果是编辑模式，加载文章数据
-  useEffect(() => {
-    if (postId) {
-      async function loadPost() {
+    if (galleryId) {
+      async function loadGallery() {
         const { data } = await supabase
-          .from("Post")
+          .from("PhotoGallery")
           .select("*")
-          .eq("id", postId)
+          .eq("id", galleryId)
           .single();
 
         if (data) {
           setFormData({
             title: data.title ?? "",
             slug: data.slug ?? "",
-            content: data.content ?? "",
-            excerpt: data.excerpt ?? "",
+            description: data.description ?? "",
             coverImage: data.coverImage ?? "",
-            categoryId: data.categoryId ?? "",
+            location: data.location ?? "",
+            captureDate: data.captureDate
+              ? new Date(data.captureDate).toISOString().split("T")[0]
+              : "",
             status: data.status ?? "DRAFT",
           });
         }
       }
-      void loadPost();
+      void loadGallery();
     }
-  }, [postId]);
+  }, [galleryId]);
 
   const generateSlug = (title: string) => {
-    // 简单的 slug 生成，可以使用库如 slugify 来改进
     return title
       .toLowerCase()
       .replace(/[^\w\s-]/g, "")
@@ -109,10 +84,8 @@ export default function PostEditorPage({
     setLoading(true);
 
     try {
-      // 获取或创建默认用户
+      // 获取第一个用户作为作者
       let authorId = "default-author-id";
-
-      // 尝试获取第一个用户作为作者
       const { data: users } = await supabase
         .from("User")
         .select("id")
@@ -122,30 +95,31 @@ export default function PostEditorPage({
         authorId = users[0].id;
       }
 
-      const postData = {
+      const galleryData = {
         ...formData,
         status,
         authorId,
         publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
+        captureDate: formData.captureDate || null,
       };
 
-      console.log(postData);
-
-      if (postId) {
-        // 更新文章
+      if (galleryId) {
+        // 更新相册
         const { error } = await supabase
-          .from("Post")
-          .update(postData)
-          .eq("id", postId);
+          .from("PhotoGallery")
+          .update(galleryData)
+          .eq("id", galleryId);
 
         if (error) throw error;
       } else {
-        // 创建新文章
-        const { error } = await supabase.from("Post").insert([postData]);
+        // 创建新相册
+        const { error } = await supabase
+          .from("PhotoGallery")
+          .insert([galleryData]);
         if (error) throw error;
       }
 
-      router.push("/admin/posts");
+      router.push("/admin/galleries");
       router.refresh();
     } catch (error) {
       console.error("保存失败:", error);
@@ -159,7 +133,7 @@ export default function PostEditorPage({
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-900">
-          {postId ? "编辑文章" : "新建文章"}
+          {galleryId ? "编辑相册" : "新建相册"}
         </h1>
       </div>
 
@@ -170,14 +144,14 @@ export default function PostEditorPage({
             {/* Title */}
             <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
               <label className="block text-sm font-medium text-slate-700">
-                标题
+                相册标题
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-lg font-medium text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="输入文章标题..."
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-3 text-lg font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="输入相册标题..."
                 required
               />
             </div>
@@ -193,41 +167,65 @@ export default function PostEditorPage({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, slug: e.target.value }))
                 }
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="article-slug"
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="gallery-slug"
                 required
               />
               <p className="mt-1 text-sm text-slate-500">
-                文章的 URL 路径，例如: /post/{formData.slug || "article-slug"}
+                相册的 URL 路径，例如: /photography/{formData.slug || "gallery-slug"}
               </p>
             </div>
 
-            {/* Excerpt */}
+            {/* Description */}
             <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
               <label className="block text-sm font-medium text-slate-700">
-                摘要
+                描述
               </label>
               <textarea
-                value={formData.excerpt}
+                value={formData.description}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, excerpt: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
                 }
-                rows={3}
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="简短描述文章内容..."
+                rows={4}
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="简短描述相册内容..."
               />
             </div>
 
-            {/* Content */}
+            {/* Location */}
             <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                内容
+              <label className="block text-sm font-medium text-slate-700">
+                拍摄地点
               </label>
-              <RichTextEditor
-                content={formData.content}
-                onChange={(content) =>
-                  setFormData((prev) => ({ ...prev, content }))
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, location: e.target.value }))
                 }
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="例如：北京·故宫"
+              />
+            </div>
+
+            {/* Capture Date */}
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <label className="block text-sm font-medium text-slate-700">
+                拍摄日期
+              </label>
+              <input
+                type="date"
+                value={formData.captureDate}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    captureDate: e.target.value,
+                  }))
+                }
+                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -252,33 +250,9 @@ export default function PostEditorPage({
                   disabled={loading}
                   className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {loading ? "发布中..." : "发布文章"}
+                  {loading ? "发布中..." : "发布相册"}
                 </button>
               </div>
-            </div>
-
-            {/* Category */}
-            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-              <label className="block text-sm font-medium text-slate-700">
-                分类
-              </label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    categoryId: e.target.value,
-                  }))
-                }
-                className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">选择分类</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Cover Image */}
