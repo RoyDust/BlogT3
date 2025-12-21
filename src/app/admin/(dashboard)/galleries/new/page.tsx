@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "~/lib/supabase";
 import ImageUpload from "~/components/admin/ImageUpload";
+import GalleryImageManager from "~/components/admin/GalleryImageManager";
 
 export default function GalleryEditorPage({
   params,
@@ -274,6 +275,16 @@ export default function GalleryEditorPage({
             </div>
           </div>
         </div>
+
+        {/* Gallery Images - Only show in edit mode */}
+        {galleryId && (
+          <div className="mt-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">
+              相册图片管理
+            </h2>
+            <GalleryImageManager galleryId={galleryId} />
+          </div>
+        )}
       </form>
     </div>
   );
