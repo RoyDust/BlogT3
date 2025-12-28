@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Camera } from 'lucide-react';
 import { MainLayout } from '~/components/layout/MainLayout';
-import { PhotoCard } from '~/components/photography/PhotoCard';
+import { PhotographySearch } from '~/components/photography/PhotographySearch';
 import { getGalleries } from '~/server/actions/galleries';
 
 export const metadata: Metadata = {
@@ -17,6 +17,7 @@ export default async function PhotographyPage() {
   });
 
   const galleries = result.success ? result.data ?? [] : [];
+  const count = result.count ?? 0;
 
   return (
     <MainLayout showSidebar={true}>
@@ -32,25 +33,11 @@ export default async function PhotographyPage() {
           </p>
         </div>
 
-        {/* Photo Gallery Grid */}
-        {galleries.length > 0 ? (
-          <div className="space-y-4">
-            {galleries.map((gallery, index) => (
-              <div
-                key={gallery.id}
-                className="onload-animation"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <PhotoCard gallery={gallery} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="card-base p-12 text-center">
-            <Camera className="h-16 w-16 text-75 mx-auto mb-4 opacity-50" />
-            <p className="text-75 text-lg">暂无摄影作品</p>
-          </div>
-        )}
+        {/* Search and Gallery */}
+        <PhotographySearch
+          initialGalleries={galleries}
+          initialCount={count}
+        />
       </div>
     </MainLayout>
   );

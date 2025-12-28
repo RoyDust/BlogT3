@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { MainLayout } from '~/components/layout/MainLayout';
-import { PostCard } from '~/components/blog/PostCard';
+import { BlogSearch } from '~/components/blog/BlogSearch';
 import { getPosts } from '~/server/actions/posts';
+import { getCategories } from '~/server/actions/categories';
+import { getTags } from '~/server/actions/tags';
 
 export async function generateMetadata(): Promise<Metadata> {
   const result = await getPosts({ status: 'PUBLISHED' });
@@ -20,8 +22,13 @@ export default async function BlogPage() {
     order: 'desc'
   });
 
+  const categoriesResult = await getCategories();
+  const tagsResult = await getTags();
+
   const posts = result.success ? result.data ?? [] : [];
   const count = result.count ?? 0;
+  const categories = categoriesResult.success ? categoriesResult.data ?? [] : [];
+  const tags = tagsResult.success ? tagsResult.data ?? [] : [];
 
   return (
     <MainLayout showSidebar={true}>
@@ -36,24 +43,13 @@ export default async function BlogPage() {
           </p>
         </div>
 
-        {/* Posts List */}
-        <div className="space-y-4">
-          {posts.length > 0 ? (
-            posts.map((post, index) => (
-              <div
-                key={post.id}
-                className="onload-animation"
-                style={{ animationDelay: `${50 + index * 50}ms` }}
-              >
-                <PostCard post={post} />
-              </div>
-            ))
-          ) : (
-            <div className="card-base p-12 text-center text-75">
-              <p>暂无文章</p>
-            </div>
-          )}
-        </div>
+        {/* Search and Filter */}
+        <BlogSearch
+          initialPosts={posts}
+          initialCount={count}
+          categories={categories}
+          tags={tags}
+        />
       </div>
     </MainLayout>
   );

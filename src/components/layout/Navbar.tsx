@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, Search, Palette, Menu } from "lucide-react";
 import { ThemeSwitch } from "../ui/ThemeSwitch";
 import { HuePicker } from "../ui/HuePicker";
+import { useSearch } from "../providers/SearchProvider";
 import { useScrollHide } from "@/hooks/useScrollHide";
 
 const navLinks = [
@@ -18,7 +19,21 @@ const navLinks = [
 export function Navbar() {
   const [showHuePicker, setShowHuePicker] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { toggleSearch } = useSearch();
   const isHidden = useScrollHide({ threshold: 100, delta: 5 });
+
+  // 监听全局快捷键 Ctrl/Cmd + K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        toggleSearch();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleSearch]);
 
   return (
     <div
@@ -57,10 +72,12 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center">
-          {/* Search (Placeholder) */}
+          {/* Search */}
           <button
             aria-label="搜索"
+            title="搜索 (Ctrl+K)"
             className="btn-plain scale-animation h-11 w-11 rounded-lg"
+            onClick={toggleSearch}
           >
             <Search className="h-5 w-5" />
           </button>

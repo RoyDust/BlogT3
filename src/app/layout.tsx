@@ -5,6 +5,8 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/ui/ThemeProvider";
 import { BackToTop } from "~/components/ui/BackToTop";
 import { SessionProvider } from "~/components/providers/SessionProvider";
+import { SearchProvider } from "~/components/providers/SearchProvider";
+import { SearchDialog } from "~/components/search/SearchDialog";
 import { getThemeInitScript } from "~/lib/theme-utils";
 
 export const metadata: Metadata = {
@@ -12,6 +14,10 @@ export const metadata: Metadata = {
   description: "基于 Next.js 15 和 Supabase 构建的类型安全博客系统",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
+
+function SearchDialogWrapper() {
+  return <SearchDialog />;
+}
 
 export default function RootLayout({
   children,
@@ -33,8 +39,11 @@ export default function RootLayout({
       <body>
         <SessionProvider>
           <ThemeProvider>
-            {children}
-            <BackToTop />
+            <SearchProvider>
+              {children}
+              <BackToTop />
+              <SearchDialogWrapper />
+            </SearchProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

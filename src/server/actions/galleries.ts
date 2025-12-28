@@ -86,6 +86,7 @@ export interface GetGalleriesOptions {
   authorId?: string;
   featured?: boolean;
   tag?: string;
+  query?: string; // 搜索关键词（标题、描述）
   limit?: number;
   offset?: number;
   orderBy?:
@@ -212,6 +213,11 @@ export async function getGalleries(options: GetGalleriesOptions = {}) {
     }
     if (options.tag) {
       query = query.contains("tags", [options.tag]);
+    }
+
+    // 搜索关键词（标题、描述）
+    if (options.query) {
+      query = query.or(`title.ilike.%${options.query}%,description.ilike.%${options.query}%`);
     }
 
     // 排序

@@ -59,6 +59,8 @@ export interface GetPostsOptions {
   authorId?: string;
   categoryId?: string;
   featured?: boolean;
+  query?: string; // 搜索关键词（标题、摘要、内容）
+  tagIds?: string[]; // 标签筛选
   limit?: number;
   offset?: number;
   orderBy?: 'createdAt' | 'publishedAt' | 'viewCount' | 'likeCount';
@@ -184,6 +186,11 @@ export async function getPosts(options: GetPostsOptions = {}) {
       query = query.eq('featured', options.featured);
     }
 
+    // 搜索关键词（标题、摘要、内容）
+    if (options.query) {
+      query = query.or(`title.ilike.%${options.query}%,excerpt.ilike.%${options.query}%,content.ilike.%${options.query}%`);
+    }
+
     // 排序
     const orderBy = options.orderBy || 'createdAt';
     const order = options.order || 'desc';
@@ -197,9 +204,35 @@ export async function getPosts(options: GetPostsOptions = {}) {
       query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
     }
 
-    const { data: posts, error, count } = await query;
+    let { data: posts, error, count } = await query;
 
     if (error) throw error;
+
+    // 如果有标签筛选，需要额外过滤
+    if (options.tagIds && options.tagIds.length > 0 && posts) {
+      // 获取符合标签条件的文章 ID
+      const { data: postTags, error: tagError } = await supabase
+        .from('PostTag')
+        .select('postId')
+        .in('tagId', options.tagIds);
+
+      if (tagError) throw tagError;
+
+      // 统计每个文章匹配的标签数
+      const postIdCounts = new Map<string, number>();
+      postTags?.forEach((pt) => {
+        postIdCounts.set(pt.postId, (postIdCounts.get(pt.postId) || 0) + 1);
+      });
+
+      // 筛选出包含所有指定标签的文章
+      const matchingPostIds = Array.from(postIdCounts.entries())
+        .filter(([_, count]) => count === options.tagIds!.length)
+        .map(([postId]) => postId);
+
+      posts = posts.filter((post) => matchingPostIds.includes(post.id));
+      count = posts.length;
+    }
+
     return { success: true, data: posts, count };
   } catch (error) {
     console.error('Error fetching posts:', error);
