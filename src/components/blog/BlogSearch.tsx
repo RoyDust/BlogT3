@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Search, X, Filter } from 'lucide-react';
 import { PostCard } from '~/components/blog/PostCard';
 import { getPosts } from '~/server/actions/posts';
@@ -27,10 +28,7 @@ interface BlogSearchProps {
 export function BlogSearch({ initialPosts, initialCount, categories, tags }: BlogSearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [count, setCount] = useState(initialCount);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // 搜索和筛选状态
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -40,10 +38,10 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   );
   const [showFilters, setShowFilters] = useState(false);
 
-  // 执行搜索
-  const performSearch = async () => {
-    setIsLoading(true);
-    try {
+  // 使用 React Query 获取数据
+  const { data, isLoading } = useQuery({
+    queryKey: ['posts', query, selectedCategory, selectedTags],
+    queryFn: async () => {
       const result = await getPosts({
         status: 'PUBLISHED',
         query: query || undefined,
@@ -54,50 +52,57 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
       });
 
       if (result.success) {
-        setPosts(result.data ?? []);
-        setCount(result.count ?? 0);
+        return {
+          posts: result.data ?? [],
+          count: result.count ?? 0,
+        };
       }
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return { posts: [], count: 0 };
+    },
+    initialData: { posts: initialPosts, count: initialCount },
+    staleTime: 30 * 1000, // 30秒内数据视为新鲜
+  });
 
-  // 更新 URL 参数
-  const updateURL = () => {
+  const posts = data?.posts ?? [];
+  const count = data?.count ?? 0;
+
+  // 使用 useCallback 避免函数重新创建
+  const updateURL = useCallback(() => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (selectedCategory) params.set('category', selectedCategory);
     if (selectedTags.length > 0) params.set('tags', selectedTags.join(','));
 
     const newURL = params.toString() ? `?${params.toString()}` : '/blog';
-    router.push(newURL, { scroll: false });
-  };
 
-  // 当搜索条件变化时执行搜索
+    // 使用 startTransition 标记为非紧急更新
+    startTransition(() => {
+      router.push(newURL, { scroll: false });
+    });
+  }, [query, selectedCategory, selectedTags, router]);
+
+  // 延迟更新 URL
   useEffect(() => {
     const timer = setTimeout(() => {
-      performSearch();
       updateURL();
-    }, 300);
+    }, 500); // 延迟500ms更新URL
 
     return () => clearTimeout(timer);
-  }, [query, selectedCategory, selectedTags]);
+  }, [updateURL]);
 
   // 清除所有筛选
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setQuery('');
     setSelectedCategory('');
     setSelectedTags([]);
-  };
+  }, []);
 
   // 切换标签选择
-  const toggleTag = (tagId: string) => {
+  const toggleTag = useCallback((tagId: string) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
     );
-  };
+  }, []);
 
   const hasActiveFilters = query || selectedCategory || selectedTags.length > 0;
 
@@ -188,7 +193,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
       {/* 搜索结果统计 */}
       <div className="card-base p-4 onload-animation">
         <p className="text-75">
-          {isLoading ? '搜索中...' : `找到 ${count} 篇文章`}
+          {isLoading || isPending ? '搜索中...' : `找到 ${count} 篇文章`}
         </p>
       </div>
 

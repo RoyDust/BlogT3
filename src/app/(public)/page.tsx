@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { MainLayout } from "~/components/layout/MainLayout";
 import { PostCard } from "~/components/blog/PostCard";
 import { getPosts } from "~/server/actions/posts";
 import { supabase } from "~/lib/supabase";
@@ -69,10 +68,9 @@ export default async function HomePage() {
   );
 
   return (
-    <MainLayout>
-      <div className="space-y-8">
-        {/* Hero Section */}
-        <section className="card-base onload-animation p-8 text-center md:p-12">
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <section className="card-base onload-animation p-8 text-center md:p-12">
           <h1 className="text-90 mb-4 text-4xl font-bold md:text-5xl">
             欢迎来到 BlogT3
           </h1>
@@ -240,6 +238,5 @@ export default async function HomePage() {
           </div>
         </section>
       </div>
-    </MainLayout>
   );
 }

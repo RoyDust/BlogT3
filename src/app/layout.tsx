@@ -5,6 +5,7 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/ui/ThemeProvider";
 import { BackToTop } from "~/components/ui/BackToTop";
 import { SessionProvider } from "~/components/providers/SessionProvider";
+import { ReactQueryProvider } from "~/components/providers/ReactQueryProvider";
 import { SearchProvider } from "~/components/providers/SearchProvider";
 import { SearchDialog } from "~/components/search/SearchDialog";
 import { getThemeInitScript } from "~/lib/theme-utils";
@@ -38,13 +39,15 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          <ThemeProvider>
-            <SearchProvider>
-              {children}
-              <BackToTop />
-              <SearchDialogWrapper />
-            </SearchProvider>
-          </ThemeProvider>
+          <ReactQueryProvider>
+            <ThemeProvider>
+              <SearchProvider>
+                {children}
+                <BackToTop />
+                <SearchDialogWrapper />
+              </SearchProvider>
+            </ThemeProvider>
+          </ReactQueryProvider>
         </SessionProvider>
       </body>
     </html>

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Calendar, Tag, ArrowLeft, Eye, Heart } from 'lucide-react';
 import Link from 'next/link';
-import { MainLayout } from '~/components/layout/MainLayout';
 import { PhotoGalleryGrid } from '~/components/photography/PhotoGalleryGrid';
 import { getGalleryBySlug, incrementGalleryView, getGalleryPhotos } from '~/server/actions/galleries';
 
@@ -58,8 +57,7 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
       });
 
   return (
-    <MainLayout showSidebar={true}>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Back Button */}
         <Link
           href="/photography"
@@ -134,6 +132,5 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
           />
         </div>
       </div>
-    </MainLayout>
   );
 }

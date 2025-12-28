@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Search, X } from 'lucide-react';
 import { PhotoCard } from '~/components/photography/PhotoCard';
 import { getGalleries } from '~/server/actions/galleries';
-import type { PhotoGallery } from '~/server/actions/galleries';
 
 interface PhotographySearchProps {
   initialGalleries: any[];
@@ -15,16 +15,14 @@ interface PhotographySearchProps {
 export function PhotographySearch({ initialGalleries, initialCount }: PhotographySearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const [galleries, setGalleries] = useState<any[]>(initialGalleries);
-  const [count, setCount] = useState(initialCount);
-  const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
 
-  // 执行搜索
-  const performSearch = async () => {
-    setIsLoading(true);
-    try {
+  // 使用 React Query 获取数据
+  const { data, isLoading } = useQuery({
+    queryKey: ['galleries', query],
+    queryFn: async () => {
       const result = await getGalleries({
         status: 'PUBLISHED',
         query: query || undefined,
@@ -33,39 +31,46 @@ export function PhotographySearch({ initialGalleries, initialCount }: Photograph
       });
 
       if (result.success) {
-        setGalleries(result.data ?? []);
-        setCount(result.count ?? 0);
+        return {
+          galleries: result.data ?? [],
+          count: result.count ?? 0,
+        };
       }
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return { galleries: [], count: 0 };
+    },
+    initialData: { galleries: initialGalleries, count: initialCount },
+    staleTime: 30 * 1000, // 30秒内数据视为新鲜
+  });
 
-  // 更新 URL 参数
-  const updateURL = () => {
+  const galleries = data?.galleries ?? [];
+  const count = data?.count ?? 0;
+
+  // 使用 useCallback 避免函数重新创建
+  const updateURL = useCallback(() => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
 
     const newURL = params.toString() ? `?${params.toString()}` : '/photography';
-    router.push(newURL, { scroll: false });
-  };
 
-  // 当搜索条件变化时执行搜索
+    // 使用 startTransition 标记为非紧急更新
+    startTransition(() => {
+      router.push(newURL, { scroll: false });
+    });
+  }, [query, router]);
+
+  // 延迟更新 URL
   useEffect(() => {
     const timer = setTimeout(() => {
-      performSearch();
       updateURL();
-    }, 300);
+    }, 500); // 延迟500ms更新URL
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [updateURL]);
 
   // 清除搜索
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setQuery('');
-  };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -97,7 +102,7 @@ export function PhotographySearch({ initialGalleries, initialCount }: Photograph
       {/* 搜索结果统计 */}
       <div className="card-base p-4 onload-animation">
         <p className="text-75">
-          {isLoading ? '搜索中...' : `找到 ${count} 个相册`}
+          {isLoading || isPending ? '搜索中...' : `找到 ${count} 个相册`}
         </p>
       </div>
 

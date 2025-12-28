@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Calendar } from "lucide-react";
-import { MainLayout } from "~/components/layout/MainLayout";
 import { CategoryBadge } from "~/components/blog/CategoryBadge";
 import { getPosts } from "~/server/actions/posts";
 import { supabase } from "~/lib/supabase";
@@ -93,8 +92,7 @@ export default async function ArchivePage() {
   const totalViews = posts.reduce((sum, post) => sum + post.viewCount, 0);
 
   return (
-    <MainLayout showSidebar={true}>
-      <div className="space-y-4">
+    <div className="space-y-4">
         {/* Page Title */}
         <div className="card-base onload-animation p-6 md:p-8">
           <div className="mb-2 flex items-center gap-3">
@@ -231,6 +229,5 @@ export default async function ArchivePage() {
           </div>
         )}
       </div>
-    </MainLayout>
   );
 }

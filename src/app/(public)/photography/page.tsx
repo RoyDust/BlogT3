@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Camera } from 'lucide-react';
-import { MainLayout } from '~/components/layout/MainLayout';
 import { PhotographySearch } from '~/components/photography/PhotographySearch';
 import { getGalleries } from '~/server/actions/galleries';
 
@@ -20,25 +19,23 @@ export default async function PhotographyPage() {
   const count = result.count ?? 0;
 
   return (
-    <MainLayout showSidebar={true}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="card-base p-8 text-center onload-animation">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Camera className="h-8 w-8 text-[var(--primary)]" />
-            <h1 className="text-4xl font-bold text-90">摄影作品</h1>
-          </div>
-          <p className="text-75 text-lg">
-            用镜头捕捉世界，用光影记录生活
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="card-base p-8 text-center onload-animation">
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <Camera className="h-8 w-8 text-[var(--primary)]" />
+          <h1 className="text-4xl font-bold text-90">摄影作品</h1>
         </div>
-
-        {/* Search and Gallery */}
-        <PhotographySearch
-          initialGalleries={galleries}
-          initialCount={count}
-        />
+        <p className="text-75 text-lg">
+          用镜头捕捉世界，用光影记录生活
+        </p>
       </div>
-    </MainLayout>
+
+      {/* Search and Gallery */}
+      <PhotographySearch
+        initialGalleries={galleries}
+        initialCount={count}
+      />
+    </div>
   );
 }

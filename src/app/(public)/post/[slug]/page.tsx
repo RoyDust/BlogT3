@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Clock, Eye, ChevronLeft } from 'lucide-react';
-import { MainLayout } from '~/components/layout/MainLayout';
 import { CategoryBadge } from '~/components/blog/CategoryBadge';
 import { getPostBySlug, getPosts, incrementPostView } from '~/server/actions/posts';
 import { supabase } from '~/lib/supabase';
@@ -96,8 +95,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
 
   return (
-    <MainLayout showSidebar={true}>
-      <div className="space-y-4">
+    <div className="space-y-4">
         {/* Back Button */}
         <Link
           href="/blog"
@@ -259,6 +257,5 @@ export default async function PostPage({ params }: PostPageProps) {
           )}
         </div>
       </div>
-    </MainLayout>
   );
 }

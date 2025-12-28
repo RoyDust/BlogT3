@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Search, X, FileText, Image } from 'lucide-react';
 import { getPosts } from '~/server/actions/posts';
 import { getGalleries } from '~/server/actions/galleries';
@@ -19,28 +20,25 @@ interface SearchResult {
 export function SearchDialog() {
   const { isSearchOpen, closeSearch } = useSearch();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [searchType, setSearchType] = useState<'all' | 'post' | 'gallery'>('all');
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // 搜索函数
-  const performSearch = useCallback(async (searchQuery: string, type: 'all' | 'post' | 'gallery') => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      return;
-    }
+  // 使用 React Query 进行搜索
+  const { data: results = [], isLoading } = useQuery({
+    queryKey: ['search', query, searchType],
+    queryFn: async () => {
+      if (!query.trim()) {
+        return [];
+      }
 
-    setIsLoading(true);
-    try {
       const searchResults: SearchResult[] = [];
 
       // 搜索文章
-      if (type === 'all' || type === 'post') {
+      if (searchType === 'all' || searchType === 'post') {
         const postsResult = await getPosts({
-          query: searchQuery,
+          query: query,
           status: 'PUBLISHED',
           limit: 10,
         });
@@ -60,9 +58,9 @@ export function SearchDialog() {
       }
 
       // 搜索相册
-      if (type === 'all' || type === 'gallery') {
+      if (searchType === 'all' || searchType === 'gallery') {
         const galleriesResult = await getGalleries({
-          query: searchQuery,
+          query: query,
           status: 'PUBLISHED',
           limit: 10,
         });
@@ -81,23 +79,16 @@ export function SearchDialog() {
         }
       }
 
-      setResults(searchResults);
-      setSelectedIndex(0);
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return searchResults;
+    },
+    enabled: query.trim().length > 0, // 只在有查询时执行
+    staleTime: 30 * 1000, // 30秒内数据视为新鲜
+  });
 
-  // 防抖搜索
+  // 重置选中索引
   useEffect(() => {
-    const timer = setTimeout(() => {
-      performSearch(query, searchType);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query, searchType, performSearch]);
+    setSelectedIndex(0);
+  }, [results]);
 
   // 键盘导航
   useEffect(() => {

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Github, Twitter, Mail, Globe, Heart } from 'lucide-react';
-import { MainLayout } from '~/components/layout/MainLayout';
 import { mockProfile, mockCategories, mockPosts } from '~/lib/mock-data';
 
 export const metadata: Metadata = {
@@ -12,8 +11,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <MainLayout showSidebar={true}>
-      <div className="space-y-4">
+    <div className="space-y-4">
         {/* Profile Card */}
         <div className="card-base p-8 md:p-12 onload-animation text-center">
           {/* Avatar */}
@@ -195,6 +193,5 @@ export default function AboutPage() {
           </p>
         </div>
       </div>
-    </MainLayout>
   );
 }
