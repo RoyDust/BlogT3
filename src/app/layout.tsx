@@ -1,4 +1,6 @@
 import "~/app/globals.css";
+import "highlight.js/styles/github.css";
+import "highlight.js/styles/github-dark.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";

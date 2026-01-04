@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Clock, Eye, ChevronLeft } from 'lucide-react';
 import { CategoryBadge } from '~/components/blog/CategoryBadge';
+import { MarkdownContent } from '~/components/blog/MarkdownContent';
 import { getPostBySlug, getPosts, incrementPostView } from '~/server/actions/posts';
 import { supabase } from '~/lib/supabase';
 
@@ -195,11 +196,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
 
           {/* Content */}
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            <div className="text-75 leading-relaxed whitespace-pre-line">
-              {post.content}
-            </div>
-          </div>
+          <MarkdownContent content={post.content} />
         </article>
 
         {/* Author Card */}
