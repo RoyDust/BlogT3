@@ -7,11 +7,13 @@ interface PostMetaProps {
   publishedAt: string;
   updatedAt?: string;
   category?: {
+    id?: string;
     name: string;
     slug: string;
     color?: string;
   };
   tags?: Array<{
+    id?: string;
     name: string;
     slug: string;
   }>;
@@ -75,8 +77,8 @@ export function PostMeta({
         <div className={`flex flex-wrap items-center gap-2 ${hideTagsForMobile ? 'hidden md:flex' : ''}`}>
           {tags.map((tag) => (
             <Link
-              key={tag.slug}
-              href={`/blog?tag=${tag.slug}`}
+              key={tag.id || tag.slug}
+              href={`/blog?tags=${tag.id || tag.slug}`}
               className="text-50 hover:text-[var(--primary)] transition with-divider"
             >
               {tag.name}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 interface CategoryBadgeProps {
   category: {
+    id?: string;
     name: string;
     slug: string;
     color?: string;
@@ -27,7 +28,7 @@ export function CategoryBadge({ category, showLink = true }: CategoryBadgeProps)
 
   if (showLink) {
     return (
-      <Link href={`/blog?category=${category.slug}`}>
+      <Link href={`/blog?category=${category.id || category.slug}`}>
         {badgeContent}
       </Link>
     );

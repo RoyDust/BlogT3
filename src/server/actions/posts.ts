@@ -233,6 +233,8 @@ export async function getPosts(options: GetPostsOptions = {}) {
       count = posts.length;
     }
 
+    console.log(posts);
+
     return { success: true, data: posts, count };
   } catch (error) {
     console.error('Error fetching posts:', error);

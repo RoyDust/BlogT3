@@ -1,5 +1,3 @@
-'use client';
-
 import { Navbar } from '~/components/layout/Navbar';
 import { Sidebar } from '~/components/layout/Sidebar';
 import { Footer } from '~/components/layout/Footer';
@@ -28,11 +26,12 @@ export default function PublicLayout({
             className="onload-animation min-w-0 flex-1"
           >
             {children}
-            {/* Footer */}
-            <Footer />
           </main>
         </div>
       </div>
+
+      {/* Footer - 移到外层,全宽显示 */}
+      <Footer />
     </div>
   );
 }

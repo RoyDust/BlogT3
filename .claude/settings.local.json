@@ -10,7 +10,9 @@
       "Bash(openspec-cn show:*)",
       "Bash(openspec-cn archive add-frontend-search:*)",
       "Bash(echo \"### 8. 管理后台完善 ⭐⭐⭐\n\n**优先级**: 中 \\(提升管理效率\\)\n\n#### 8.1 Markdown 编辑器增强\n\\\\`\\\\`\\\\`typescript\n// 实时预览\nexport function MarkdownEditor\\(\\) {\n  const [content, setContent] = useState\\(''''\\);\n\n  return \\(\n    <div className=\"\"grid grid-cols-2 gap-4\"\">\n      <textarea\n        value={content}\n        onChange={\\(e\\) => setContent\\(e.target.value\\)}\n        className=\"\"font-mono\"\"\n      />\n      <MarkdownContent content={content} />\n    </div>\n  \\);\n}\n\\\\`\\\\`\\\\`\n\n**受影响文件**:\n- \\\\`src/components/RichTextEditor.tsx\\\\` \\(需增强\\)\n- \\\\`src/app/admin/dashboard/page.tsx\\\\` \\(新建\\)\n\n**预计工作量**: 6-8 小时\n\n---\n\")",
-      "Bash(openspec-cn archive add-markdown-renderer:*)"
+      "Bash(openspec-cn archive add-markdown-renderer:*)",
+      "Bash(npm run dev:*)",
+      "Bash(openspec-cn apply:*)"
     ]
   }
 }

@@ -31,10 +31,10 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   const [isPending, startTransition] = useTransition();
 
   // 搜索和筛选状态
-  const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [query, setQuery] = useState(searchParams?.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams?.get('category') || '');
   const [selectedTags, setSelectedTags] = useState<string[]>(
-    searchParams.get('tags')?.split(',').filter(Boolean) || []
+    searchParams?.get('tags')?.split(',').filter(Boolean) || []
   );
   const [showFilters, setShowFilters] = useState(false);
 
@@ -66,8 +66,31 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   const posts = data?.posts ?? [];
   const count = data?.count ?? 0;
 
-  // 使用 useCallback 避免函数重新创建
-  const updateURL = useCallback(() => {
+  // 同步 URL 参数到组件状态（当用户从外部链接进入时）
+  useEffect(() => {
+    const urlQuery = searchParams?.get('q') ?? '';
+    const urlCategory = searchParams?.get('category') ?? '';
+    const urlTags = searchParams?.get('tags')?.split(',').filter(Boolean) ?? [];
+
+    setQuery(urlQuery);
+    setSelectedCategory(urlCategory);
+    setSelectedTags(urlTags);
+  }, [searchParams]);
+
+  // 更新 URL（当用户在组件内操作时）
+  useEffect(() => {
+    // 检查当前状态是否与 URL 参数一致，避免不必要的更新
+    const urlQuery = searchParams?.get('q') ?? '';
+    const urlCategory = searchParams?.get('category') ?? '';
+    const urlTags = searchParams?.get('tags')?.split(',').filter(Boolean) ?? [];
+
+    const stateMatchesUrl =
+      query === urlQuery &&
+      selectedCategory === urlCategory &&
+      JSON.stringify(selectedTags) === JSON.stringify(urlTags);
+
+    if (stateMatchesUrl) return;
+
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (selectedCategory) params.set('category', selectedCategory);
@@ -75,20 +98,14 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
 
     const newURL = params.toString() ? `?${params.toString()}` : '/blog';
 
-    // 使用 startTransition 标记为非紧急更新
-    startTransition(() => {
-      router.push(newURL, { scroll: false });
-    });
-  }, [query, selectedCategory, selectedTags, router]);
-
-  // 延迟更新 URL
-  useEffect(() => {
     const timer = setTimeout(() => {
-      updateURL();
-    }, 500); // 延迟500ms更新URL
+      startTransition(() => {
+        router.push(newURL, { scroll: false });
+      });
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [updateURL]);
+  }, [query, selectedCategory, selectedTags, searchParams, router]);
 
   // 清除所有筛选
   const clearFilters = useCallback(() => {

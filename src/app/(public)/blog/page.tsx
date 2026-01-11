@@ -14,9 +14,21 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function BlogPage() {
+interface BlogPageProps {
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    tags?: string;
+  }>;
+}
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const params = await searchParams;
   const result = await getPosts({
     status: 'PUBLISHED',
+    query: params.q,
+    categoryId: params.category,
+    tagIds: params.tags?.split(',').filter(Boolean),
     orderBy: 'publishedAt',
     order: 'desc'
   });

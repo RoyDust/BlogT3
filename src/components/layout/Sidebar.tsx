@@ -1,9 +1,10 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Github, Twitter, Mail, Folder, Tag } from 'lucide-react';
+import { getCategories } from '~/server/actions/categories';
+import { getTags } from '~/server/actions/tags';
+import { getPosts } from '~/server/actions/posts';
 
 // Mock data - will be replaced with real data later
 const profile = {
@@ -17,19 +18,27 @@ const profile = {
   ],
 };
 
-const categories = [
-  { name: '前端开发', slug: 'frontend', color: '#3b82f6', count: 12 },
-  { name: '后端开发', slug: 'backend', color: '#10b981', count: 8 },
-  { name: 'UI/UX 设计', slug: 'ui-ux', color: '#ec4899', count: 5 },
-  { name: '编程语言', slug: 'programming', color: '#f59e0b', count: 7 },
-];
+export async function Sidebar() {
+  // 获取真实的分类和标签数据
+  const categoriesResult = await getCategories();
+  const tagsResult = await getTags();
 
-const tags = [
-  'Next.js', 'React', 'TypeScript', 'Tailwind', 'CSS',
-  'Supabase', 'PostgreSQL', 'Node.js',
-];
+  const categories = categoriesResult.success ? categoriesResult.data ?? [] : [];
+  const tags = tagsResult.success ? tagsResult.data ?? [] : [];
 
-export function Sidebar() {
+  // 获取每个分类的文章数量
+  const categoriesWithCount = await Promise.all(
+    categories.map(async (category) => {
+      const result = await getPosts({
+        status: 'PUBLISHED',
+        categoryId: category.id,
+      });
+      return {
+        ...category,
+        count: result.count ?? 0,
+      };
+    })
+  );
   return (
     <aside id="sidebar" className="onload-animation w-[17.5rem] shrink-0">
       <div className="sticky top-[5.5rem] space-y-4">
@@ -81,10 +90,10 @@ export function Sidebar() {
             <h3 className="font-bold text-90">分类</h3>
           </div>
           <div className="space-y-2">
-            {categories.map((category) => (
+            {categoriesWithCount.map((category) => (
               <Link
-                key={category.slug}
-                href={`/blog?category=${category.slug}`}
+                key={category.id}
+                href={`/blog?category=${category.id}`}
                 className="flex items-center justify-between py-2 px-3 rounded-lg transition hover:bg-[var(--btn-plain-bg-hover)]"
               >
                 <div className="flex items-center gap-2">
@@ -109,11 +118,11 @@ export function Sidebar() {
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <Link
-                key={tag}
-                href={`/blog?tag=${tag}`}
+                key={tag.id}
+                href={`/blog?tags=${tag.id}`}
                 className="px-3 py-1 text-xs rounded-full bg-[var(--btn-regular-bg)] text-[var(--btn-content)] hover:bg-[var(--btn-regular-bg-hover)] transition"
               >
-                {tag}
+                {tag.name}
               </Link>
             ))}
           </div>
