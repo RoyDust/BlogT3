@@ -62,7 +62,7 @@ export default function GalleryEditorPage({
             coverImage: data.coverImage ?? "",
             location: data.location ?? "",
             captureDate: data.captureDate
-              ? new Date(data.captureDate).toISOString().split("T")[0]
+              ? new Date(data.captureDate).toISOString().split("T")[0]!
               : "",
             status: data.status ?? "DRAFT",
           });

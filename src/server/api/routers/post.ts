@@ -122,6 +122,10 @@ export const postRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new Error("未授权：需要登录才能创建文章");
+      }
+
       const { data, error } = await supabase
         .from("posts")
         .insert({
@@ -166,6 +170,10 @@ export const postRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new Error("未授权：需要登录才能更新文章");
+      }
+
       const { id, ...updateData } = input;
 
       // 如果状态改为 published，设置发布时间
@@ -202,9 +210,13 @@ export const postRouter = createTRPCRouter({
     }),
 
   // 删除文章（需要认证）
-  delete: protectedProcedure
+  delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user) {
+        throw new Error("未授权：需要登录才能删除文章");
+      }
+
       const { error } = await supabase
         .from("posts")
         .delete()
@@ -217,7 +229,11 @@ export const postRouter = createTRPCRouter({
     }),
 
   // 获取当前用户的文章
-  getMyPosts: protectedProcedure.query(async ({ ctx }) => {
+  getMyPosts: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user) {
+      throw new Error("未授权：需要登录才能查看自己的文章");
+    }
+
     const { data, error } = await supabase
       .from("posts")
       .select("*, categories(name, slug, color)")

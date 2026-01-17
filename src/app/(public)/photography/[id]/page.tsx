@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, Tag, ArrowLeft, Eye, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { PhotoGalleryGrid } from '~/components/photography/PhotoGalleryGrid';
+import { InteractionSidebar } from '~/components/interaction/InteractionSidebar';
 import { getGalleryBySlug, incrementGalleryView, getGalleryPhotos } from '~/server/actions/galleries';
 
 interface PageProps {
@@ -58,6 +59,14 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
+        {/* Interaction Sidebar */}
+        <InteractionSidebar
+          targetType="GALLERY"
+          targetId={gallery.id}
+          initialLikeCount={gallery.likeCount}
+          initialFeedbackCount={0}
+        />
+
         {/* Back Button */}
         <Link
           href="/photography"

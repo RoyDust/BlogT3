@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Calendar, Clock, Eye, ChevronLeft } from 'lucide-react';
 import { CategoryBadge } from '~/components/blog/CategoryBadge';
 import { MarkdownContent } from '~/components/blog/MarkdownContent';
+import { InteractionSidebar } from '~/components/interaction/InteractionSidebar';
 import { getPostBySlug, getPosts, incrementPostView } from '~/server/actions/posts';
 import { supabase } from '~/lib/supabase';
 
@@ -97,6 +98,14 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <div className="space-y-4">
+        {/* Interaction Sidebar */}
+        <InteractionSidebar
+          targetType="POST"
+          targetId={post.id}
+          initialLikeCount={post.likeCount}
+          initialFeedbackCount={0}
+        />
+
         {/* Back Button */}
         <Link
           href="/blog"

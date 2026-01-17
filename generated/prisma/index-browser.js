@@ -121,12 +121,18 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
+  email: 'email',
+  emailVerified: 'emailVerified',
   name: 'name',
+  password: 'password',
+  avatar: 'avatar',
+  bio: 'bio',
+  role: 'role',
+  status: 'status',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  createdById: 'createdById'
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -152,23 +158,155 @@ exports.Prisma.SessionScalarFieldEnum = {
   expires: 'expires'
 };
 
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  emailVerified: 'emailVerified',
-  image: 'image'
-};
-
 exports.Prisma.VerificationTokenScalarFieldEnum = {
   identifier: 'identifier',
   token: 'token',
   expires: 'expires'
 };
 
+exports.Prisma.CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  color: 'color',
+  icon: 'icon',
+  postCount: 'postCount',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TagScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  postCount: 'postCount',
+  galleryCount: 'galleryCount',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PostScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  excerpt: 'excerpt',
+  content: 'content',
+  coverImage: 'coverImage',
+  status: 'status',
+  featured: 'featured',
+  viewCount: 'viewCount',
+  likeCount: 'likeCount',
+  commentCount: 'commentCount',
+  wordCount: 'wordCount',
+  readingTime: 'readingTime',
+  publishedAt: 'publishedAt',
+  authorId: 'authorId',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PostTagScalarFieldEnum = {
+  postId: 'postId',
+  tagId: 'tagId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  postId: 'postId',
+  authorId: 'authorId',
+  authorName: 'authorName',
+  authorEmail: 'authorEmail',
+  parentId: 'parentId',
+  status: 'status',
+  likeCount: 'likeCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LikeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PostViewScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  viewerIp: 'viewerIp',
+  viewerId: 'viewerId',
+  userAgent: 'userAgent',
+  referer: 'referer',
+  viewedAt: 'viewedAt'
+};
+
+exports.Prisma.PhotoGalleryScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  description: 'description',
+  coverImage: 'coverImage',
+  coverImageThumb: 'coverImageThumb',
+  status: 'status',
+  featured: 'featured',
+  viewCount: 'viewCount',
+  likeCount: 'likeCount',
+  imageCount: 'imageCount',
+  captureDate: 'captureDate',
+  location: 'location',
+  camera: 'camera',
+  lens: 'lens',
+  authorId: 'authorId',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PhotoImageScalarFieldEnum = {
+  id: 'id',
+  galleryId: 'galleryId',
+  url: 'url',
+  thumbnail: 'thumbnail',
+  alt: 'alt',
+  width: 'width',
+  height: 'height',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  exifData: 'exifData',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.GalleryTagScalarFieldEnum = {
+  galleryId: 'galleryId',
+  tagId: 'tagId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FeedbackScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  type: 'type',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  userIp: 'userIp',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -181,13 +319,69 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.UserRole = exports.$Enums.UserRole = {
+  USER: 'USER',
+  ADMIN: 'ADMIN',
+  MODERATOR: 'MODERATOR'
+};
+
+exports.UserStatus = exports.$Enums.UserStatus = {
+  ACTIVE: 'ACTIVE',
+  BANNED: 'BANNED',
+  DELETED: 'DELETED'
+};
+
+exports.PostStatus = exports.$Enums.PostStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.CommentStatus = exports.$Enums.CommentStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.LikeTargetType = exports.$Enums.LikeTargetType = {
+  POST: 'POST',
+  COMMENT: 'COMMENT',
+  GALLERY: 'GALLERY'
+};
+
+exports.GalleryStatus = exports.$Enums.GalleryStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.FeedbackType = exports.$Enums.FeedbackType = {
+  BUG_REPORT: 'BUG_REPORT',
+  SUGGESTION: 'SUGGESTION',
+  OTHER: 'OTHER'
+};
 
 exports.Prisma.ModelName = {
-  Post: 'Post',
+  User: 'User',
   Account: 'Account',
   Session: 'Session',
-  User: 'User',
-  VerificationToken: 'VerificationToken'
+  VerificationToken: 'VerificationToken',
+  Category: 'Category',
+  Tag: 'Tag',
+  Post: 'Post',
+  PostTag: 'PostTag',
+  Comment: 'Comment',
+  Like: 'Like',
+  PostView: 'PostView',
+  PhotoGallery: 'PhotoGallery',
+  PhotoImage: 'PhotoImage',
+  GalleryTag: 'GalleryTag',
+  Feedback: 'Feedback'
 };
 
 /**

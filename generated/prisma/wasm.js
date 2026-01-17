@@ -93,12 +93,18 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
+  email: 'email',
+  emailVerified: 'emailVerified',
   name: 'name',
+  password: 'password',
+  avatar: 'avatar',
+  bio: 'bio',
+  role: 'role',
+  status: 'status',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  createdById: 'createdById'
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -124,23 +130,155 @@ exports.Prisma.SessionScalarFieldEnum = {
   expires: 'expires'
 };
 
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  emailVerified: 'emailVerified',
-  image: 'image'
-};
-
 exports.Prisma.VerificationTokenScalarFieldEnum = {
   identifier: 'identifier',
   token: 'token',
   expires: 'expires'
 };
 
+exports.Prisma.CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  color: 'color',
+  icon: 'icon',
+  postCount: 'postCount',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TagScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  postCount: 'postCount',
+  galleryCount: 'galleryCount',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PostScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  excerpt: 'excerpt',
+  content: 'content',
+  coverImage: 'coverImage',
+  status: 'status',
+  featured: 'featured',
+  viewCount: 'viewCount',
+  likeCount: 'likeCount',
+  commentCount: 'commentCount',
+  wordCount: 'wordCount',
+  readingTime: 'readingTime',
+  publishedAt: 'publishedAt',
+  authorId: 'authorId',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PostTagScalarFieldEnum = {
+  postId: 'postId',
+  tagId: 'tagId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  postId: 'postId',
+  authorId: 'authorId',
+  authorName: 'authorName',
+  authorEmail: 'authorEmail',
+  parentId: 'parentId',
+  status: 'status',
+  likeCount: 'likeCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LikeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PostViewScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  viewerIp: 'viewerIp',
+  viewerId: 'viewerId',
+  userAgent: 'userAgent',
+  referer: 'referer',
+  viewedAt: 'viewedAt'
+};
+
+exports.Prisma.PhotoGalleryScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  description: 'description',
+  coverImage: 'coverImage',
+  coverImageThumb: 'coverImageThumb',
+  status: 'status',
+  featured: 'featured',
+  viewCount: 'viewCount',
+  likeCount: 'likeCount',
+  imageCount: 'imageCount',
+  captureDate: 'captureDate',
+  location: 'location',
+  camera: 'camera',
+  lens: 'lens',
+  authorId: 'authorId',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PhotoImageScalarFieldEnum = {
+  id: 'id',
+  galleryId: 'galleryId',
+  url: 'url',
+  thumbnail: 'thumbnail',
+  alt: 'alt',
+  width: 'width',
+  height: 'height',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  exifData: 'exifData',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.GalleryTagScalarFieldEnum = {
+  galleryId: 'galleryId',
+  tagId: 'tagId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FeedbackScalarFieldEnum = {
+  id: 'id',
+  content: 'content',
+  type: 'type',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  userIp: 'userIp',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -153,13 +291,69 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.UserRole = exports.$Enums.UserRole = {
+  USER: 'USER',
+  ADMIN: 'ADMIN',
+  MODERATOR: 'MODERATOR'
+};
+
+exports.UserStatus = exports.$Enums.UserStatus = {
+  ACTIVE: 'ACTIVE',
+  BANNED: 'BANNED',
+  DELETED: 'DELETED'
+};
+
+exports.PostStatus = exports.$Enums.PostStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.CommentStatus = exports.$Enums.CommentStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.GalleryStatus = exports.$Enums.GalleryStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.LikeTargetType = exports.$Enums.LikeTargetType = {
+  POST: 'POST',
+  COMMENT: 'COMMENT',
+  GALLERY: 'GALLERY'
+};
+
+exports.FeedbackType = exports.$Enums.FeedbackType = {
+  BUG_REPORT: 'BUG_REPORT',
+  SUGGESTION: 'SUGGESTION',
+  OTHER: 'OTHER'
+};
 
 exports.Prisma.ModelName = {
-  Post: 'Post',
+  User: 'User',
   Account: 'Account',
   Session: 'Session',
-  User: 'User',
-  VerificationToken: 'VerificationToken'
+  VerificationToken: 'VerificationToken',
+  Category: 'Category',
+  Tag: 'Tag',
+  Post: 'Post',
+  PostTag: 'PostTag',
+  Comment: 'Comment',
+  Like: 'Like',
+  PostView: 'PostView',
+  PhotoGallery: 'PhotoGallery',
+  PhotoImage: 'PhotoImage',
+  GalleryTag: 'GalleryTag',
+  Feedback: 'Feedback'
 };
 /**
  * Create the Client
@@ -209,13 +403,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  createdBy   User   @relation(fields: [createdById], references: [id])\n  createdById String\n\n  @@index([name])\n}\n\n// Necessary for Next auth\nmodel Account {\n  id                       String  @id @default(cuid())\n  userId                   String\n  type                     String\n  provider                 String\n  providerAccountId        String\n  refresh_token            String? @db.Text\n  access_token             String? @db.Text\n  expires_at               Int?\n  token_type               String?\n  scope                    String?\n  id_token                 String? @db.Text\n  session_state            String?\n  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n  refresh_token_expires_in Int?\n\n  @@unique([provider, providerAccountId])\n}\n\nmodel Session {\n  id           String   @id @default(cuid())\n  sessionToken String   @unique\n  userId       String\n  expires      DateTime\n  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel User {\n  id            String    @id @default(cuid())\n  name          String?\n  email         String?   @unique\n  emailVerified DateTime?\n  image         String?\n  accounts      Account[]\n  sessions      Session[]\n  posts         Post[]\n}\n\nmodel VerificationToken {\n  identifier String\n  token      String   @unique\n  expires    DateTime\n\n  @@unique([identifier, token])\n}\n",
-  "inlineSchemaHash": "e0e02cc8408e02f416d530c3b79b86c25f27e6193b44b2f455d3909afc3ad3a8",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\n// ============================================================================\n// 枚举类型\n// ============================================================================\n\nenum UserRole {\n  USER\n  ADMIN\n  MODERATOR\n}\n\nenum UserStatus {\n  ACTIVE\n  BANNED\n  DELETED\n}\n\nenum PostStatus {\n  DRAFT\n  PUBLISHED\n  ARCHIVED\n}\n\nenum CommentStatus {\n  PENDING\n  APPROVED\n  REJECTED\n}\n\nenum GalleryStatus {\n  DRAFT\n  PUBLISHED\n  ARCHIVED\n}\n\nenum LikeTargetType {\n  POST\n  COMMENT\n  GALLERY\n}\n\nenum FeedbackType {\n  BUG_REPORT\n  SUGGESTION\n  OTHER\n}\n\n// ============================================================================\n// 用户系统\n// ============================================================================\n\nmodel User {\n  id            String     @id @default(cuid())\n  email         String     @unique\n  emailVerified DateTime?\n  name          String?\n  password      String?\n  avatar        String?\n  bio           String?\n  role          UserRole   @default(USER)\n  status        UserStatus @default(ACTIVE)\n  createdAt     DateTime   @default(now())\n  updatedAt     DateTime   @updatedAt\n\n  // 关系（应用层维护）\n  accounts  Account[]\n  sessions  Session[]\n  posts     Post[]         @relation(\"UserPosts\")\n  galleries PhotoGallery[] @relation(\"UserGalleries\")\n  comments  Comment[]      @relation(\"UserComments\")\n  postViews PostView[]     @relation(\"UserViews\")\n\n  @@index([email])\n  @@index([role, status])\n  @@map(\"User\")\n}\n\nmodel Account {\n  id                       String  @id @default(cuid())\n  userId                   String\n  type                     String\n  provider                 String\n  providerAccountId        String\n  refresh_token            String?\n  access_token             String?\n  expires_at               Int?\n  token_type               String?\n  scope                    String?\n  id_token                 String?\n  session_state            String?\n  refresh_token_expires_in Int?\n\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([provider, providerAccountId])\n  @@index([userId])\n  @@map(\"Account\")\n}\n\nmodel Session {\n  id           String   @id @default(cuid())\n  sessionToken String   @unique\n  userId       String\n  expires      DateTime\n\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([userId])\n  @@index([expires])\n  @@map(\"Session\")\n}\n\nmodel VerificationToken {\n  identifier String\n  token      String   @unique\n  expires    DateTime\n\n  @@unique([identifier, token])\n  @@index([expires])\n  @@map(\"VerificationToken\")\n}\n\n// ============================================================================\n// 博客系统\n// ============================================================================\n\nmodel Category {\n  id          String   @id @default(cuid())\n  name        String   @unique\n  slug        String   @unique\n  description String?\n  color       String   @default(\"#3b82f6\")\n  icon        String?\n  postCount   Int      @default(0)\n  sortOrder   Int      @default(0)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  // 关系\n  posts Post[] @relation(\"CategoryPosts\")\n\n  @@index([sortOrder])\n  @@map(\"Category\")\n}\n\nmodel Tag {\n  id           String   @id @default(cuid())\n  name         String   @unique\n  slug         String   @unique\n  postCount    Int      @default(0)\n  galleryCount Int      @default(0)\n  createdAt    DateTime @default(now())\n\n  // 关系\n  postTags    PostTag[]    @relation(\"TagPosts\")\n  galleryTags GalleryTag[] @relation(\"TagGalleries\")\n\n  @@index([postCount])\n  @@map(\"Tag\")\n}\n\nmodel Post {\n  id           String     @id @default(cuid())\n  slug         String     @unique\n  title        String\n  excerpt      String?\n  content      String\n  coverImage   String?\n  status       PostStatus @default(DRAFT)\n  featured     Boolean    @default(false)\n  viewCount    Int        @default(0)\n  likeCount    Int        @default(0)\n  commentCount Int        @default(0)\n  wordCount    Int        @default(0)\n  readingTime  Int        @default(0)\n  publishedAt  DateTime?\n  authorId     String\n  categoryId   String\n  createdAt    DateTime   @default(now())\n  updatedAt    DateTime   @updatedAt\n\n  // 关系\n  author   User       @relation(\"UserPosts\", fields: [authorId], references: [id])\n  category Category   @relation(\"CategoryPosts\", fields: [categoryId], references: [id])\n  tags     PostTag[]  @relation(\"PostTags\")\n  comments Comment[]  @relation(\"PostComments\")\n  views    PostView[] @relation(\"PostViews\")\n\n  @@index([slug])\n  @@index([authorId])\n  @@index([categoryId])\n  @@index([status, publishedAt])\n  @@index([featured, publishedAt])\n  @@index([likeCount])\n  @@map(\"Post\")\n}\n\nmodel PostTag {\n  postId    String\n  tagId     String\n  createdAt DateTime @default(now())\n\n  post Post @relation(\"PostTags\", fields: [postId], references: [id], onDelete: Cascade)\n  tag  Tag  @relation(\"TagPosts\", fields: [tagId], references: [id], onDelete: Cascade)\n\n  @@id([postId, tagId])\n  @@index([tagId])\n  @@map(\"PostTag\")\n}\n\nmodel Comment {\n  id          String        @id @default(cuid())\n  content     String\n  postId      String\n  authorId    String?\n  authorName  String?\n  authorEmail String?\n  parentId    String?\n  status      CommentStatus @default(PENDING)\n  likeCount   Int           @default(0)\n  createdAt   DateTime      @default(now())\n  updatedAt   DateTime      @updatedAt\n\n  // 关系\n  post    Post      @relation(\"PostComments\", fields: [postId], references: [id], onDelete: Cascade)\n  author  User?     @relation(\"UserComments\", fields: [authorId], references: [id])\n  parent  Comment?  @relation(\"CommentReplies\", fields: [parentId], references: [id])\n  replies Comment[] @relation(\"CommentReplies\")\n\n  @@index([postId, status, createdAt])\n  @@index([authorId])\n  @@index([parentId])\n  @@index([status])\n  @@map(\"Comment\")\n}\n\nmodel Like {\n  id         String         @id @default(cuid())\n  userId     String\n  targetType LikeTargetType\n  targetId   String\n  createdAt  DateTime       @default(now())\n\n  @@unique([userId, targetType, targetId])\n  @@index([targetType, targetId])\n  @@index([userId])\n  @@map(\"Like\")\n}\n\nmodel PostView {\n  id        String   @id @default(cuid())\n  postId    String\n  viewerIp  String?\n  viewerId  String?\n  userAgent String?\n  referer   String?\n  viewedAt  DateTime @default(now())\n\n  // 关系\n  post   Post  @relation(\"PostViews\", fields: [postId], references: [id], onDelete: Cascade)\n  viewer User? @relation(\"UserViews\", fields: [viewerId], references: [id])\n\n  @@index([postId, viewedAt])\n  @@index([viewerId])\n  @@index([viewedAt])\n  @@map(\"PostView\")\n}\n\n// ============================================================================\n// 摄影系统\n// ============================================================================\n\nmodel PhotoGallery {\n  id              String        @id @default(cuid())\n  title           String\n  slug            String        @unique\n  description     String?\n  coverImage      String?\n  coverImageThumb String?\n  status          GalleryStatus @default(DRAFT)\n  featured        Boolean       @default(false)\n  viewCount       Int           @default(0)\n  likeCount       Int           @default(0)\n  imageCount      Int           @default(0)\n  captureDate     DateTime?\n  location        String?\n  camera          String?\n  lens            String?\n  authorId        String\n  publishedAt     DateTime?\n  createdAt       DateTime      @default(now())\n  updatedAt       DateTime      @updatedAt\n\n  // 关系\n  author User         @relation(\"UserGalleries\", fields: [authorId], references: [id])\n  images PhotoImage[] @relation(\"GalleryImages\")\n  tags   GalleryTag[] @relation(\"GalleryTags\")\n\n  @@index([slug])\n  @@index([authorId])\n  @@index([status, publishedAt])\n  @@index([featured, publishedAt])\n  @@index([likeCount])\n  @@map(\"PhotoGallery\")\n}\n\nmodel PhotoImage {\n  id        String   @id @default(cuid())\n  galleryId String\n  url       String\n  thumbnail String\n  alt       String?\n  width     Int?\n  height    Int?\n  fileSize  Int?\n  mimeType  String?\n  exifData  Json?\n  sortOrder Int      @default(0)\n  createdAt DateTime @default(now())\n\n  // 关系\n  gallery PhotoGallery @relation(\"GalleryImages\", fields: [galleryId], references: [id], onDelete: Cascade)\n\n  @@index([galleryId, sortOrder])\n  @@map(\"PhotoImage\")\n}\n\nmodel GalleryTag {\n  galleryId String\n  tagId     String\n  createdAt DateTime @default(now())\n\n  gallery PhotoGallery @relation(\"GalleryTags\", fields: [galleryId], references: [id], onDelete: Cascade)\n  tag     Tag          @relation(\"TagGalleries\", fields: [tagId], references: [id], onDelete: Cascade)\n\n  @@id([galleryId, tagId])\n  @@index([tagId])\n  @@map(\"GalleryTag\")\n}\n\n// ============================================================================\n// 反馈系统\n// ============================================================================\n\nmodel Feedback {\n  id         String       @id @default(cuid())\n  content    String\n  type       FeedbackType\n  targetType String\n  targetId   String\n  userIp     String?\n  userAgent  String?\n  createdAt  DateTime     @default(now())\n\n  @@index([targetType, targetId])\n  @@index([createdAt])\n  @@map(\"Feedback\")\n}\n",
+  "inlineSchemaHash": "6b246cd16f481ebef505418216cf1b711b30f7e5a5e783ec6d5979d49b2ac1fd",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PostToUser\"},{\"name\":\"createdById\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"Account\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"provider\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"providerAccountId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"refresh_token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"access_token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expires_at\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"token_type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"scope\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"id_token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"session_state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"AccountToUser\"},{\"name\":\"refresh_token_expires_in\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null},\"Session\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expires\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"SessionToUser\"}],\"dbName\":null},\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emailVerified\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"image\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"accounts\",\"kind\":\"object\",\"type\":\"Account\",\"relationName\":\"AccountToUser\"},{\"name\":\"sessions\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"SessionToUser\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostToUser\"}],\"dbName\":null},\"VerificationToken\":{\"fields\":[{\"name\":\"identifier\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expires\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emailVerified\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"avatar\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bio\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"UserRole\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"UserStatus\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"accounts\",\"kind\":\"object\",\"type\":\"Account\",\"relationName\":\"AccountToUser\"},{\"name\":\"sessions\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"SessionToUser\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"UserPosts\"},{\"name\":\"galleries\",\"kind\":\"object\",\"type\":\"PhotoGallery\",\"relationName\":\"UserGalleries\"},{\"name\":\"comments\",\"kind\":\"object\",\"type\":\"Comment\",\"relationName\":\"UserComments\"},{\"name\":\"postViews\",\"kind\":\"object\",\"type\":\"PostView\",\"relationName\":\"UserViews\"}],\"dbName\":\"User\"},\"Account\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"provider\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"providerAccountId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"refresh_token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"access_token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expires_at\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"token_type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"scope\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"id_token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"session_state\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"refresh_token_expires_in\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"AccountToUser\"}],\"dbName\":\"Account\"},\"Session\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionToken\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expires\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"SessionToUser\"}],\"dbName\":\"Session\"},\"VerificationToken\":{\"fields\":[{\"name\":\"identifier\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expires\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":\"VerificationToken\"},\"Category\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"icon\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"postCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"sortOrder\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"CategoryPosts\"}],\"dbName\":\"Category\"},\"Tag\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"postCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"galleryCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"postTags\",\"kind\":\"object\",\"type\":\"PostTag\",\"relationName\":\"TagPosts\"},{\"name\":\"galleryTags\",\"kind\":\"object\",\"type\":\"GalleryTag\",\"relationName\":\"TagGalleries\"}],\"dbName\":\"Tag\"},\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"excerpt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"coverImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"PostStatus\"},{\"name\":\"featured\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"viewCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"likeCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"commentCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"wordCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"readingTime\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"publishedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"authorId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"categoryId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"author\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserPosts\"},{\"name\":\"category\",\"kind\":\"object\",\"type\":\"Category\",\"relationName\":\"CategoryPosts\"},{\"name\":\"tags\",\"kind\":\"object\",\"type\":\"PostTag\",\"relationName\":\"PostTags\"},{\"name\":\"comments\",\"kind\":\"object\",\"type\":\"Comment\",\"relationName\":\"PostComments\"},{\"name\":\"views\",\"kind\":\"object\",\"type\":\"PostView\",\"relationName\":\"PostViews\"}],\"dbName\":\"Post\"},\"PostTag\":{\"fields\":[{\"name\":\"postId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tagId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"post\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostTags\"},{\"name\":\"tag\",\"kind\":\"object\",\"type\":\"Tag\",\"relationName\":\"TagPosts\"}],\"dbName\":\"PostTag\"},\"Comment\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"postId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"authorId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"authorName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"authorEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"parentId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"CommentStatus\"},{\"name\":\"likeCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"post\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostComments\"},{\"name\":\"author\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserComments\"},{\"name\":\"parent\",\"kind\":\"object\",\"type\":\"Comment\",\"relationName\":\"CommentReplies\"},{\"name\":\"replies\",\"kind\":\"object\",\"type\":\"Comment\",\"relationName\":\"CommentReplies\"}],\"dbName\":\"Comment\"},\"Like\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"targetType\",\"kind\":\"enum\",\"type\":\"LikeTargetType\"},{\"name\":\"targetId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":\"Like\"},\"PostView\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"postId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"viewerIp\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"viewerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userAgent\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"referer\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"viewedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"post\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostViews\"},{\"name\":\"viewer\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserViews\"}],\"dbName\":\"PostView\"},\"PhotoGallery\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"coverImage\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"coverImageThumb\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"GalleryStatus\"},{\"name\":\"featured\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"viewCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"likeCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"imageCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"captureDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"location\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"camera\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lens\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"authorId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"publishedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"author\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserGalleries\"},{\"name\":\"images\",\"kind\":\"object\",\"type\":\"PhotoImage\",\"relationName\":\"GalleryImages\"},{\"name\":\"tags\",\"kind\":\"object\",\"type\":\"GalleryTag\",\"relationName\":\"GalleryTags\"}],\"dbName\":\"PhotoGallery\"},\"PhotoImage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"galleryId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"url\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"thumbnail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"alt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"width\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"height\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"fileSize\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"exifData\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"sortOrder\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"gallery\",\"kind\":\"object\",\"type\":\"PhotoGallery\",\"relationName\":\"GalleryImages\"}],\"dbName\":\"PhotoImage\"},\"GalleryTag\":{\"fields\":[{\"name\":\"galleryId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tagId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"gallery\",\"kind\":\"object\",\"type\":\"PhotoGallery\",\"relationName\":\"GalleryTags\"},{\"name\":\"tag\",\"kind\":\"object\",\"type\":\"Tag\",\"relationName\":\"TagGalleries\"}],\"dbName\":\"GalleryTag\"},\"Feedback\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"FeedbackType\"},{\"name\":\"targetType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"targetId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userIp\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userAgent\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":\"Feedback\"}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),

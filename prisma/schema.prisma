@@ -51,6 +51,12 @@ enum LikeTargetType {
     GALLERY
 }
 
+enum FeedbackType {
+    BUG_REPORT
+    SUGGESTION
+    OTHER
+}
+
 // ============================================================================
 // 用户系统
 // ============================================================================
@@ -74,7 +80,6 @@ model User {
     posts         Post[]       @relation("UserPosts")
     galleries     PhotoGallery[] @relation("UserGalleries")
     comments      Comment[]    @relation("UserComments")
-    likes         Like[]       @relation("UserLikes")
     postViews     PostView[]   @relation("UserViews")
 
     @@index([email])
@@ -191,7 +196,6 @@ model Post {
     category Category    @relation("CategoryPosts", fields: [categoryId], references: [id])
     tags     PostTag[]   @relation("PostTags")
     comments Comment[]   @relation("PostComments")
-    likes    Like[]      @relation("PostLikes")
     views    PostView[]  @relation("PostViews")
 
     @@index([slug])
@@ -230,11 +234,10 @@ model Comment {
     updatedAt   DateTime      @updatedAt
 
     // 关系
-    post   Post      @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
-    author User?     @relation("UserComments", fields: [authorId], references: [id])
-    parent Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+    post    Post      @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
+    author  User?     @relation("UserComments", fields: [authorId], references: [id])
+    parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
     replies Comment[] @relation("CommentReplies")
-    likes  Like[]    @relation("CommentLikes")
 
     @@index([postId, status, createdAt])
     @@index([authorId])
@@ -249,12 +252,6 @@ model Like {
     targetType LikeTargetType
     targetId   String
     createdAt  DateTime       @default(now())
-
-    // 关系
-    user    User          @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
-    post    Post?         @relation("PostLikes", fields: [targetId], references: [id], onDelete: Cascade)
-    comment Comment?      @relation("CommentLikes", fields: [targetId], references: [id], onDelete: Cascade)
-    gallery PhotoGallery? @relation("GalleryLikes", fields: [targetId], references: [id], onDelete: Cascade)
 
     @@unique([userId, targetType, targetId])
     @@index([targetType, targetId])
@@ -310,7 +307,6 @@ model PhotoGallery {
     author User         @relation("UserGalleries", fields: [authorId], references: [id])
     images PhotoImage[] @relation("GalleryImages")
     tags   GalleryTag[] @relation("GalleryTags")
-    likes  Like[]       @relation("GalleryLikes")
 
     @@index([slug])
     @@index([authorId])
@@ -352,4 +348,23 @@ model GalleryTag {
     @@id([galleryId, tagId])
     @@index([tagId])
     @@map("GalleryTag")
+}
+
+// ============================================================================
+// 反馈系统
+// ============================================================================
+
+model Feedback {
+    id         String       @id @default(cuid())
+    content    String
+    type       FeedbackType
+    targetType String
+    targetId   String
+    userIp     String?
+    userAgent  String?
+    createdAt  DateTime     @default(now())
+
+    @@index([targetType, targetId])
+    @@index([createdAt])
+    @@map("Feedback")
 }

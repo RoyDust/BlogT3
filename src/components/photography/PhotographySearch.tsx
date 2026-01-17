@@ -17,7 +17,7 @@ export function PhotographySearch({ initialGalleries, initialCount }: Photograph
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [query, setQuery] = useState(searchParams?.get('q') || '');
 
   // 使用 React Query 获取数据
   const { data, isLoading } = useQuery({

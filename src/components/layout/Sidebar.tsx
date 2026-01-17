@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cache } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Github, Twitter, Mail, Folder, Tag } from 'lucide-react';
@@ -18,7 +18,8 @@ const profile = {
   ],
 };
 
-export async function Sidebar() {
+// 使用 React cache 缓存侧边栏数据，避免重复查询
+const getSidebarData = cache(async () => {
   // 获取真实的分类和标签数据
   const categoriesResult = await getCategories();
   const tagsResult = await getTags();
@@ -39,6 +40,12 @@ export async function Sidebar() {
       };
     })
   );
+
+  return { categoriesWithCount, tags };
+});
+
+export async function Sidebar() {
+  const { categoriesWithCount, tags } = await getSidebarData();
   return (
     <aside id="sidebar" className="onload-animation w-[17.5rem] shrink-0">
       <div className="sticky top-[5.5rem] space-y-4">

@@ -9,11 +9,9 @@
 
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { type Session } from "next-auth";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 /**
@@ -25,7 +23,13 @@ import { db } from "~/server/db";
  */
 
 interface CreateContextOptions {
-  session: Session | null;
+  session?: {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+    };
+  } | null;
 }
 
 /**
@@ -40,7 +44,7 @@ interface CreateContextOptions {
  */
 const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
-    session: opts.session,
+    session: opts.session ?? null,
     db,
   };
 };
@@ -52,14 +56,7 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
-
-  // Get the session from the server using the getServerSession wrapper function
-  const session = await auth(req, res);
-
-  return createInnerTRPCContext({
-    session,
-  });
+  return createInnerTRPCContext({});
 };
 
 /**
@@ -140,21 +137,17 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 /**
  * Protected (authenticated) procedure
  *
- * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
- * the session is valid and guarantees `ctx.session.user` is not null.
+ * 注意：当前项目未配置身份验证，此 procedure 暂时禁用
+ * 如需使用，请先配置 next-auth 或其他身份验证方案
  *
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
+  .use(({ next }) => {
+    // 暂时禁用身份验证检查
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "身份验证未配置，请使用 publicProcedure"
     });
   });
