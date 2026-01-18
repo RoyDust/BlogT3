@@ -58,15 +58,16 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
       });
 
   return (
-    <div className="space-y-6">
-        {/* Interaction Sidebar */}
-        <InteractionSidebar
-          targetType="GALLERY"
-          targetId={gallery.id}
-          initialLikeCount={gallery.likeCount}
-          initialFeedbackCount={0}
-        />
+    <div className="relative">
+      {/* Interaction Sidebar */}
+      <InteractionSidebar
+        targetType="GALLERY"
+        targetId={gallery.id}
+        initialLikeCount={gallery.likeCount}
+        initialFeedbackCount={0}
+      />
 
+      <div className="space-y-6">
         {/* Back Button */}
         <Link
           href="/photography"
@@ -77,7 +78,7 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
         </Link>
 
         {/* Header */}
-        <div className="card-base p-8 onload-animation" style={{ animationDelay: '50ms' }}>
+        <div id="gallery-content" className="card-base p-8 onload-animation" style={{ animationDelay: '50ms' }}>
           <h1 className="text-4xl font-bold text-90 mb-4">{gallery.title}</h1>
 
           <div className="flex flex-wrap items-center gap-4 text-75 mb-4">
@@ -141,5 +142,6 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
           />
         </div>
       </div>
+    </div>
   );
 }

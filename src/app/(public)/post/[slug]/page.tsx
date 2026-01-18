@@ -97,15 +97,16 @@ export default async function PostPage({ params }: PostPageProps) {
   const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
 
   return (
-    <div className="space-y-4">
-        {/* Interaction Sidebar */}
-        <InteractionSidebar
-          targetType="POST"
-          targetId={post.id}
-          initialLikeCount={post.likeCount}
-          initialFeedbackCount={0}
-        />
+    <div className="relative">
+      {/* Interaction Sidebar */}
+      <InteractionSidebar
+        targetType="POST"
+        targetId={post.id}
+        initialLikeCount={post.likeCount}
+        initialFeedbackCount={0}
+      />
 
+      <div className="space-y-4">
         {/* Back Button */}
         <Link
           href="/blog"
@@ -116,7 +117,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </Link>
 
         {/* Post Header */}
-        <article className="card-base p-6 md:p-10 onload-animation" style={{ animationDelay: '50ms' }}>
+        <article id="post-article" className="card-base p-6 md:p-10 onload-animation" style={{ animationDelay: '50ms' }}>
           {/* Category */}
           {category && (
             <div className="mb-4">
@@ -263,5 +264,6 @@ export default async function PostPage({ params }: PostPageProps) {
           )}
         </div>
       </div>
+    </div>
   );
 }

@@ -75,35 +75,43 @@ export function InteractionSidebar({
 
   return (
     <>
-      {/* 桌面端侧边栏 */}
-      <div className="hidden lg:block fixed right-8 top-1/3 z-10">
-        <div className="flex flex-col gap-4">
+      {/* 桌面端侧边栏 - 固定在页面右侧 */}
+      <div className="hidden lg:block fixed right-56 top-40 z-10">
+        <div className="sticky top-20 flex flex-col gap-4">
           {/* 点赞按钮 */}
           <button
             onClick={handleLikeClick}
             disabled={!userId || toggleLike.isPending}
-            className="relative flex flex-col items-center gap-1 p-4 rounded-full bg-background border border-border hover:border-primary transition-colors disabled:opacity-50"
+            className="relative flex items-center justify-center p-4 rounded-full bg-background border border-border hover:border-primary transition-colors disabled:opacity-50"
             aria-label="点赞"
           >
             <ThumbsUp
               className={`h-6 w-6 ${liked ? "fill-primary text-primary" : "text-75"}`}
             />
-            <span className="text-xs text-75">{likeData?.count ?? 0}</span>
+            {(likeData?.count ?? 0) > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium text-white bg-primary rounded-full">
+                {likeData?.count ?? 0}
+              </span>
+            )}
           </button>
 
           {/* 分享按钮 */}
-          <div className="relative flex flex-col items-center gap-1 p-4 rounded-full bg-background border border-border hover:border-primary transition-colors">
+          <div className="relative flex items-center justify-center p-4 rounded-full bg-background border border-border hover:border-primary transition-colors">
             <ShareDialog url={currentUrl} title="分享内容" />
           </div>
 
           {/* 反馈按钮 */}
-          <div className="relative flex flex-col items-center gap-1 p-4 rounded-full bg-background border border-border hover:border-primary transition-colors">
+          <div className="relative flex items-center justify-center p-4 rounded-full bg-background border border-border hover:border-primary transition-colors">
             <FeedbackDialog
               targetType={targetType}
               targetId={targetId}
               userId={userId}
             />
-            <span className="text-xs text-75">{feedbackData?.count ?? 0}</span>
+            {(feedbackData?.count ?? 0) > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium text-white bg-primary rounded-full">
+                {feedbackData?.count ?? 0}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -115,29 +123,36 @@ export function InteractionSidebar({
           <button
             onClick={handleLikeClick}
             disabled={!userId || toggleLike.isPending}
-            className="flex flex-col items-center gap-1 disabled:opacity-50"
+            className="relative flex items-center justify-center disabled:opacity-50"
             aria-label="点赞"
           >
             <ThumbsUp
               className={`h-5 w-5 ${liked ? "fill-primary text-primary" : "text-75"}`}
             />
-            <span className="text-xs text-75">{likeData?.count ?? 0}</span>
+            {(likeData?.count ?? 0) > 0 && (
+              <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-medium text-white bg-primary rounded-full">
+                {likeData?.count ?? 0}
+              </span>
+            )}
           </button>
 
           {/* 分享按钮 */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="relative flex items-center justify-center">
             <ShareDialog url={currentUrl} title="分享内容" />
-            <span className="text-xs text-75">分享</span>
           </div>
 
           {/* 反馈按钮 */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="relative flex items-center justify-center">
             <FeedbackDialog
               targetType={targetType}
               targetId={targetId}
               userId={userId}
             />
-            <span className="text-xs text-75">{feedbackData?.count ?? 0}</span>
+            {(feedbackData?.count ?? 0) > 0 && (
+              <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-medium text-white bg-primary rounded-full">
+                {feedbackData?.count ?? 0}
+              </span>
+            )}
           </div>
         </div>
       </div>
