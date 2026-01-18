@@ -14,7 +14,7 @@ export default function PublicLayout({
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-[var(--page-width)] flex-1 gap-4 px-4 py-6">
+        <div className="mx-auto flex w-full max-w-[var(--page-width)] flex-1 gap-4 pt-4">
           {/* Sidebar - 固定在左侧 */}
           <div className="hidden lg:block">
             <Sidebar />

@@ -119,7 +119,7 @@ export default async function HomePage() {
             {categoriesWithCounts.map((category) => (
               <Link
                 key={category.slug}
-                href={`/blog?category=${category.slug}`}
+                href={`/blog?category=${category.id}`}
                 className="rounded-full bg-[var(--btn-content)] px-4 py-2 text-sm font-medium text-[var(--primary)] transition-all hover:scale-105 hover:bg-[var(--btn-content-hover)]"
               >
                 {category.name} ({category.count})

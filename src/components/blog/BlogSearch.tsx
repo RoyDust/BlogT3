@@ -11,11 +11,13 @@ import type { Post } from '~/server/actions/posts';
 interface Category {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface Tag {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface BlogSearchProps {
@@ -30,11 +32,35 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  const resolveCategoryId = useCallback(
+    (value: string | null) => {
+      if (!value) return '';
+      const match = categories.find((category) => category.id === value || category.slug === value);
+      return match?.id ?? value;
+    },
+    [categories]
+  );
+
+  const resolveTagIds = useCallback(
+    (value: string | null, legacyValue: string | null) => {
+      const rawValue = value ?? legacyValue ?? '';
+      if (!rawValue) return [];
+      const candidates = rawValue.split(',').filter(Boolean);
+      return candidates.map((tagValue) => {
+        const match = tags.find((tag) => tag.id === tagValue || tag.slug === tagValue);
+        return match?.id ?? tagValue;
+      });
+    },
+    [tags]
+  );
+
   // 搜索和筛选状态
   const [query, setQuery] = useState(searchParams?.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams?.get('category') || '');
+  const [selectedCategory, setSelectedCategory] = useState(
+    resolveCategoryId(searchParams?.get('category'))
+  );
   const [selectedTags, setSelectedTags] = useState<string[]>(
-    searchParams?.get('tags')?.split(',').filter(Boolean) || []
+    resolveTagIds(searchParams?.get('tags'), searchParams?.get('tag'))
   );
   const [showFilters, setShowFilters] = useState(false);
 
@@ -69,13 +95,13 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   // 同步 URL 参数到组件状态（当用户从外部链接进入时）
   useEffect(() => {
     const urlQuery = searchParams?.get('q') ?? '';
-    const urlCategory = searchParams?.get('category') ?? '';
-    const urlTags = searchParams?.get('tags')?.split(',').filter(Boolean) ?? [];
+    const urlCategory = resolveCategoryId(searchParams?.get('category'));
+    const urlTags = resolveTagIds(searchParams?.get('tags'), searchParams?.get('tag'));
 
     setQuery(urlQuery);
     setSelectedCategory(urlCategory);
     setSelectedTags(urlTags);
-  }, [searchParams]);
+  }, [searchParams, resolveCategoryId, resolveTagIds]);
 
   // 更新 URL（当用户在组件内操作时）
   useEffect(() => {

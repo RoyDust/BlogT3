@@ -177,7 +177,7 @@ export default async function PostPage({ params }: PostPageProps) {
               {tags.map((tag) => (
                 <Link
                   key={tag.slug}
-                  href={`/blog?tag=${tag.slug}`}
+                  href={`/blog?tags=${tag.id ?? tag.slug}`}
                   className="btn-plain scale-animation rounded-lg px-3 py-1 text-sm"
                 >
                   #{tag.name}

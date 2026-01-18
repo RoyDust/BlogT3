@@ -18,28 +18,47 @@ interface BlogPageProps {
   searchParams: Promise<{
     q?: string;
     category?: string;
+    tag?: string;
     tags?: string;
   }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const params = await searchParams;
+  const categoriesResult = await getCategories();
+  const tagsResult = await getTags();
+
+  const categories = categoriesResult.success ? categoriesResult.data ?? [] : [];
+  const tags = tagsResult.success ? tagsResult.data ?? [] : [];
+
+  const resolveCategoryId = (value?: string) => {
+    if (!value) return undefined;
+    const match = categories.find((category) => category.id === value || category.slug === value);
+    return match?.id ?? value;
+  };
+
+  const resolveTagIds = (value?: string) => {
+    if (!value) return undefined;
+    const candidates = value.split(',').filter(Boolean);
+    if (candidates.length === 0) return undefined;
+    return candidates.map((tagValue) => {
+      const match = tags.find((tag) => tag.id === tagValue || tag.slug === tagValue);
+      return match?.id ?? tagValue;
+    });
+  };
+
+  const tagParam = params.tags ?? params.tag;
   const result = await getPosts({
     status: 'PUBLISHED',
     query: params.q,
-    categoryId: params.category,
-    tagIds: params.tags?.split(',').filter(Boolean),
+    categoryId: resolveCategoryId(params.category),
+    tagIds: resolveTagIds(tagParam),
     orderBy: 'publishedAt',
     order: 'desc'
   });
 
-  const categoriesResult = await getCategories();
-  const tagsResult = await getTags();
-
   const posts = result.success ? result.data ?? [] : [];
   const count = result.count ?? 0;
-  const categories = categoriesResult.success ? categoriesResult.data ?? [] : [];
-  const tags = tagsResult.success ? tagsResult.data ?? [] : [];
 
   return (
     <div className="space-y-4">
