@@ -66,8 +66,71 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Statistics */}
+        {/* About Me */}
         <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '50ms' }}>
+          <div className="text-center space-y-2 mb-6">
+            <p className="text-lg text-75">Hey there! I&apos;m RoyDust 👋</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-90">👨🏻‍💻 About Me</h2>
+            <p className="text-75 italic">“像调配一杯精品咖啡一样编写代码”</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4 text-75 leading-relaxed">
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+              <p>🎓 软件工程 出身（湖南 | 2024届），从非名校启航，在技术海洋中乘风破浪</p>
+            </div>
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+              <p>💡 前端工程师 + 全栈探索者，专注于构建优雅的用户界面和流畅的交互体验</p>
+            </div>
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+              <p>🎯 技术理念：既要追求代码的实用性，更要在时间允许时雕琢细节与性能，让每一行代码都值得被欣赏</p>
+            </div>
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+              <p>🎨 跨界创作者：前端开发 × UI设计，善于将多媒体思维融入 Web 开发</p>
+            </div>
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+              <p>🌸 二次元老宅 | 资深萌豚观众，相信好的交互设计就像好的动画分镜一样能传递情感</p>
+            </div>
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+              <p>☕ 咖啡驱动开发者，用一杯手冲开启每天的编码时光</p>
+            </div>
+            <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] md:col-span-2">
+              <p>✍️ 在 个人博客 和 掘金 分享技术思考与实践</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Personal Tech Stack */}
+        <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '100ms' }}>
+          <h2 className="text-2xl font-bold text-90 mb-6">🛠 Tech Stack</h2>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-90 mb-3">核心技能</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+                  <h4 className="font-bold text-90 mb-2">🎨 Frontend: Vue | React | TypeScript</h4>
+                  <p className="text-sm text-75">专注于现代化前端开发，追求性能与美学的平衡</p>
+                </div>
+                <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+                  <h4 className="font-bold text-90 mb-2">🔧 Backend: Java | C | Node.js | Next.js</h4>
+                  <p className="text-sm text-75">全栈视野，理解前后端协作的完整链路</p>
+                </div>
+                <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] md:col-span-2">
+                  <h4 className="font-bold text-90 mb-2">🗄️ Database: MySQL | MongoDB</h4>
+                  <p className="text-sm text-75">关系型与文档型数据库的实践应用</p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-90 mb-3">开发工具链</h3>
+              <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
+                <p className="text-75">⚙️ Cursor | IntelliJ IDEA | Visual Studio Code | Vim</p>
+                <p className="text-sm text-75 mt-2">工欲善其事，必先利其器</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Statistics */}
+        <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '150ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-6 text-center">创作统计</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
@@ -98,7 +161,7 @@ export default function AboutPage() {
         </div>
 
         {/* About Blog */}
-        <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '100ms' }}>
+        <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '200ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-4">关于本站</h2>
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <div className="text-75 leading-relaxed space-y-4">
@@ -113,7 +176,7 @@ export default function AboutPage() {
         </div>
 
         {/* Tech Stack */}
-        <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '150ms' }}>
+        <div className="card-base p-6 md:p-8 onload-animation" style={{ animationDelay: '250ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-6">技术栈</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
@@ -159,7 +222,7 @@ export default function AboutPage() {
         </div>
 
         {/* Contact */}
-        <div className="card-base p-6 md:p-8 onload-animation text-center" style={{ animationDelay: '200ms' }}>
+        <div className="card-base p-6 md:p-8 onload-animation text-center" style={{ animationDelay: '300ms' }}>
           <h2 className="text-2xl font-bold text-90 mb-4">联系方式</h2>
           <p className="text-75 mb-6">
             如果您有任何问题或建议，欢迎通过以下方式联系我：
@@ -185,7 +248,7 @@ export default function AboutPage() {
         </div>
 
         {/* Footer Message */}
-        <div className="text-center py-8 onload-animation" style={{ animationDelay: '250ms' }}>
+        <div className="text-center py-8 onload-animation" style={{ animationDelay: '350ms' }}>
           <p className="text-75 flex items-center justify-center gap-2">
             用
             <Heart className="h-4 w-4 text-[var(--primary)] fill-current" />
