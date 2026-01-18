@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { supabase } from "~/lib/supabase";
 
 export default function DeleteCategoryButton({
@@ -15,30 +16,26 @@ export default function DeleteCategoryButton({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        `确定要删除分类 "${categoryName}" 吗？关联的文章将被取消分类。`
-      )
-    ) {
-      return;
-    }
-
     setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from("Category")
-        .delete()
-        .eq("id", categoryId);
 
-      if (error) throw error;
+    toast.promise(
+      (async () => {
+        const { error } = await supabase
+          .from("Category")
+          .delete()
+          .eq("id", categoryId);
 
-      router.refresh();
-    } catch (error) {
-      console.error("删除失败:", error);
-      alert("删除失败，请重试");
-    } finally {
+        if (error) throw error;
+        router.refresh();
+      })(),
+      {
+        loading: `正在删除分类 "${categoryName}"...`,
+        success: "分类删除成功！",
+        error: "删除失败，请重试",
+      }
+    ).finally(() => {
       setIsDeleting(false);
-    }
+    });
   };
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { supabase } from "~/lib/supabase";
 
 export default function DeletePostButton({
@@ -15,23 +16,22 @@ export default function DeletePostButton({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm(`确定要删除文章 "${postTitle}" 吗？此操作无法撤销。`)) {
-      return;
-    }
-
     setIsDeleting(true);
-    try {
-      const { error } = await supabase.from("Post").delete().eq("id", postId);
 
-      if (error) throw error;
-
-      router.refresh();
-    } catch (error) {
-      console.error("删除失败:", error);
-      alert("删除失败，请重试");
-    } finally {
+    toast.promise(
+      (async () => {
+        const { error } = await supabase.from("Post").delete().eq("id", postId);
+        if (error) throw error;
+        router.refresh();
+      })(),
+      {
+        loading: `正在删除文章 "${postTitle}"...`,
+        success: "文章删除成功！",
+        error: "删除失败，请重试",
+      }
+    ).finally(() => {
       setIsDeleting(false);
-    }
+    });
   };
 
   return (

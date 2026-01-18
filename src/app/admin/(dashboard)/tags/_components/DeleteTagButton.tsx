@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { supabase } from "~/lib/supabase";
 
 export default function DeleteTagButton({
@@ -15,30 +16,26 @@ export default function DeleteTagButton({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        `确定要删除标签 "${tagName}" 吗？关联的文章将取消此标签。`
-      )
-    ) {
-      return;
-    }
-
     setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from("Tag")
-        .delete()
-        .eq("id", tagId);
 
-      if (error) throw error;
+    toast.promise(
+      (async () => {
+        const { error } = await supabase
+          .from("Tag")
+          .delete()
+          .eq("id", tagId);
 
-      router.refresh();
-    } catch (error) {
-      console.error("删除失败:", error);
-      alert("删除失败，请重试");
-    } finally {
+        if (error) throw error;
+        router.refresh();
+      })(),
+      {
+        loading: `正在删除标签 "${tagName}"...`,
+        success: "标签删除成功！",
+        error: "删除失败，请重试",
+      }
+    ).finally(() => {
       setIsDeleting(false);
-    }
+    });
   };
 
   return (

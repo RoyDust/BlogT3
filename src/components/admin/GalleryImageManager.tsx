@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "~/lib/supabase";
 import ImageUpload from "~/components/admin/ImageUpload";
 import { Trash2, GripVertical } from "lucide-react";
@@ -94,40 +95,40 @@ export default function GalleryImageManager({
       // 重新加载图片列表
       await loadImages();
 
-      alert("图片上传成功！");
+      toast.success("图片上传成功！");
     } catch (error) {
       console.error("上传失败:", error);
-      alert("上传失败，请重试");
+      toast.error("上传失败，请重试");
     } finally {
       setUploading(false);
     }
   };
 
   const handleDeleteImage = async (imageId: string) => {
-    if (!confirm("确定要删除这张图片吗？")) return;
+    toast.promise(
+      (async () => {
+        const { error } = await supabase
+          .from("PhotoImage")
+          .delete()
+          .eq("id", imageId);
 
-    try {
-      const { error } = await supabase
-        .from("PhotoImage")
-        .delete()
-        .eq("id", imageId);
+        if (error) throw error;
 
-      if (error) throw error;
+        // 更新相册的图片数量
+        await supabase
+          .from("PhotoGallery")
+          .update({ imageCount: images.length - 1 })
+          .eq("id", galleryId);
 
-      // 更新相册的图片数量
-      await supabase
-        .from("PhotoGallery")
-        .update({ imageCount: images.length - 1 })
-        .eq("id", galleryId);
-
-      // 重新加载图片列表
-      await loadImages();
-
-      alert("图片删除成功！");
-    } catch (error) {
-      console.error("删除失败:", error);
-      alert("删除失败，请重试");
-    }
+        // 重新加载图片列表
+        await loadImages();
+      })(),
+      {
+        loading: "正在删除图片...",
+        success: "图片删除成功！",
+        error: "删除失败，请重试",
+      }
+    );
   };
 
   const handleUpdateAlt = async (imageId: string, alt: string) => {
@@ -145,7 +146,7 @@ export default function GalleryImageManager({
       );
     } catch (error) {
       console.error("更新失败:", error);
-      alert("更新失败，请重试");
+      toast.error("更新失败，请重试");
     }
   };
 

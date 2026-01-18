@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ThumbsUp, Share2, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import { ShareDialog } from "./ShareDialog";
 import { FeedbackDialog } from "./FeedbackDialog";
 import { api } from "~/trpc/react";
@@ -60,9 +61,16 @@ export function InteractionSidebar({
 
       // 刷新点赞数量
       void utils.like.getLikeCount.invalidate({ targetType, targetId });
+
+      // 显示成功提示
+      if (data.liked) {
+        toast.success("点赞成功！");
+      } else {
+        toast.success("已取消点赞");
+      }
     },
     onError: (error) => {
-      alert(error.message);
+      toast.error(error.message);
     },
   });
 

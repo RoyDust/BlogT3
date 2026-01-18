@@ -10,6 +10,7 @@ import { SessionProvider } from "~/components/providers/SessionProvider";
 import { ReactQueryProvider } from "~/components/providers/ReactQueryProvider";
 import { SearchProvider } from "~/components/providers/SearchProvider";
 import { SearchDialog } from "~/components/search/SearchDialog";
+import { Toaster } from "~/components/ui/sonner";
 import { getThemeInitScript } from "~/lib/theme-utils";
 
 export const metadata: Metadata = {
@@ -47,6 +48,7 @@ export default function RootLayout({
                 {children}
                 <BackToTop />
                 <SearchDialogWrapper />
+                <Toaster position="top-right" />
               </SearchProvider>
             </ThemeProvider>
           </ReactQueryProvider>

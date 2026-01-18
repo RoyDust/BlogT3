@@ -5,6 +5,7 @@ import { MessageSquare } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -61,10 +62,10 @@ export function FeedbackDialog({ targetType, targetId, userId }: FeedbackDialogP
     onSuccess: () => {
       form.reset();
       setOpen(false);
-      alert("感谢您的反馈！");
+      toast.success("感谢您的反馈！");
     },
     onError: (error) => {
-      alert(error.message);
+      toast.error(error.message);
     },
   });
 
