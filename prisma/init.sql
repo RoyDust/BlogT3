@@ -1,109 +1,47 @@
--- ============================================================================
--- BlogT3 数据库初始化 SQL 脚本
--- ============================================================================
--- 数据库: PostgreSQL 12+
--- 部署平台: Supabase
--- 日期: 2024-06-20
--- 说明: 不使用外键约束，应用层保证数据一致性
--- ============================================================================
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
 
--- 清理已存在的表（谨慎使用，仅用于开发环境）
--- DROP TABLE IF EXISTS "Like" CASCADE;
--- DROP TABLE IF EXISTS "PostView" CASCADE;
--- DROP TABLE IF EXISTS "Comment" CASCADE;
--- DROP TABLE IF EXISTS "PostTag" CASCADE;
--- DROP TABLE IF EXISTS "GalleryTag" CASCADE;
--- DROP TABLE IF EXISTS "PhotoImage" CASCADE;
--- DROP TABLE IF EXISTS "PhotoGallery" CASCADE;
--- DROP TABLE IF EXISTS "Post" CASCADE;
--- DROP TABLE IF EXISTS "Tag" CASCADE;
--- DROP TABLE IF EXISTS "Category" CASCADE;
--- DROP TABLE IF EXISTS "Session" CASCADE;
--- DROP TABLE IF EXISTS "Account" CASCADE;
--- DROP TABLE IF EXISTS "VerificationToken" CASCADE;
--- DROP TABLE IF EXISTS "User" CASCADE;
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'MODERATOR');
 
--- ============================================================================
--- 1. 枚举类型定义
--- ============================================================================
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BANNED', 'DELETED');
 
--- 用户角色枚举
-DO $$ BEGIN
-    CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'MODERATOR');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- CreateEnum
+CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 
--- 用户状态枚举
-DO $$ BEGIN
-    CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BANNED', 'DELETED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- CreateEnum
+CREATE TYPE "CommentStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
--- 文章状态枚举
-DO $$ BEGIN
-    CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- CreateEnum
+CREATE TYPE "GalleryStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 
--- 评论状态枚举
-DO $$ BEGIN
-    CREATE TYPE "CommentStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- CreateEnum
+CREATE TYPE "LikeTargetType" AS ENUM ('POST', 'COMMENT', 'GALLERY');
 
--- 相册状态枚举
-DO $$ BEGIN
-    CREATE TYPE "GalleryStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- CreateEnum
+CREATE TYPE "FeedbackType" AS ENUM ('BUG_REPORT', 'SUGGESTION', 'OTHER');
 
--- 点赞目标类型枚举
-DO $$ BEGIN
-    CREATE TYPE "LikeTargetType" AS ENUM ('POST', 'COMMENT', 'GALLERY');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
--- ============================================================================
--- 2. 用户系统表
--- ============================================================================
-
--- 用户表
-CREATE TABLE IF NOT EXISTS "User" (
-    "id" TEXT PRIMARY KEY,
-    "email" TEXT NOT NULL UNIQUE,
-    "emailVerified" TIMESTAMP WITH TIME ZONE,
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "email" TEXT NOT NULL,
+    "emailVerified" TIMESTAMPTZ(6),
     "name" TEXT,
     "password" TEXT,
     "avatar" TEXT,
     "bio" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
--- 用户表索引
-CREATE INDEX IF NOT EXISTS "idx_user_email" ON "User"("email");
-CREATE INDEX IF NOT EXISTS "idx_user_role_status" ON "User"("role", "status");
-
--- 用户表注释
-COMMENT ON TABLE "User" IS '用户表：存储用户基本信息';
-COMMENT ON COLUMN "User"."id" IS '用户唯一标识';
-COMMENT ON COLUMN "User"."email" IS '用户邮箱';
-COMMENT ON COLUMN "User"."role" IS '用户角色：USER/ADMIN/MODERATOR';
-COMMENT ON COLUMN "User"."status" IS '账号状态：ACTIVE/BANNED/DELETED';
-
--- ============================================================================
-
--- OAuth 账号表
-CREATE TABLE IF NOT EXISTS "Account" (
-    "id" TEXT PRIMARY KEY,
+-- CreateTable
+CREATE TABLE "Account" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "userId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "provider" TEXT NOT NULL,
@@ -115,153 +53,92 @@ CREATE TABLE IF NOT EXISTS "Account" (
     "scope" TEXT,
     "id_token" TEXT,
     "session_state" TEXT,
-    "refresh_token_expires_in" INTEGER
+    "refresh_token_expires_in" INTEGER,
+
+    CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
 );
 
--- Account 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_account_provider" ON "Account"("provider", "providerAccountId");
-CREATE INDEX IF NOT EXISTS "idx_account_userId" ON "Account"("userId");
-
-COMMENT ON TABLE "Account" IS 'OAuth 账号表：存储第三方登录信息';
-
--- ============================================================================
-
--- 会话表
-CREATE TABLE IF NOT EXISTS "Session" (
-    "id" TEXT PRIMARY KEY,
-    "sessionToken" TEXT NOT NULL UNIQUE,
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "sessionToken" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "expires" TIMESTAMP WITH TIME ZONE NOT NULL
+    "expires" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
 
--- Session 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_session_token" ON "Session"("sessionToken");
-CREATE INDEX IF NOT EXISTS "idx_session_userId" ON "Session"("userId");
-CREATE INDEX IF NOT EXISTS "idx_session_expires" ON "Session"("expires");
-
-COMMENT ON TABLE "Session" IS '会话表：存储用户会话信息';
-
--- ============================================================================
-
--- 验证令牌表
-CREATE TABLE IF NOT EXISTS "VerificationToken" (
+-- CreateTable
+CREATE TABLE "VerificationToken" (
     "identifier" TEXT NOT NULL,
-    "token" TEXT NOT NULL UNIQUE,
-    "expires" TIMESTAMP WITH TIME ZONE NOT NULL
+    "token" TEXT NOT NULL,
+    "expires" TIMESTAMPTZ(6) NOT NULL
 );
 
--- VerificationToken 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_verification_identifier_token" ON "VerificationToken"("identifier", "token");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_verification_token" ON "VerificationToken"("token");
-CREATE INDEX IF NOT EXISTS "idx_verification_expires" ON "VerificationToken"("expires");
-
-COMMENT ON TABLE "VerificationToken" IS '验证令牌表：用于邮箱验证和密码重置';
-
--- ============================================================================
--- 3. 博客系统表
--- ============================================================================
-
--- 分类表
-CREATE TABLE IF NOT EXISTS "Category" (
-    "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    "name" TEXT NOT NULL UNIQUE,
-    "slug" TEXT NOT NULL UNIQUE,
+-- CreateTable
+CREATE TABLE "Category" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "description" TEXT,
     "color" TEXT NOT NULL DEFAULT '#3b82f6',
     "icon" TEXT,
-    "postCount" INTEGER NOT NULL DEFAULT 0 CHECK ("postCount" >= 0),
-    "sortOrder" INTEGER NOT NULL DEFAULT 0 CHECK ("sortOrder" >= 0),
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "postCount" INTEGER NOT NULL DEFAULT 0,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
 
--- Category 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_category_slug" ON "Category"("slug");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_category_name" ON "Category"("name");
-CREATE INDEX IF NOT EXISTS "idx_category_sortOrder" ON "Category"("sortOrder");
+-- CreateTable
+CREATE TABLE "Tag" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "postCount" INTEGER NOT NULL DEFAULT 0,
+    "galleryCount" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-COMMENT ON TABLE "Category" IS '分类表：文章分类管理';
-
--- ============================================================================
-
--- 标签表
-CREATE TABLE IF NOT EXISTS "Tag" (
-    "id" TEXT PRIMARY KEY,
-    "name" TEXT NOT NULL UNIQUE,
-    "slug" TEXT NOT NULL UNIQUE,
-    "postCount" INTEGER NOT NULL DEFAULT 0 CHECK ("postCount" >= 0),
-    "galleryCount" INTEGER NOT NULL DEFAULT 0 CHECK ("galleryCount" >= 0),
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    CONSTRAINT "Tag_pkey" PRIMARY KEY ("id")
 );
 
--- Tag 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_tag_slug" ON "Tag"("slug");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_tag_name" ON "Tag"("name");
-CREATE INDEX IF NOT EXISTS "idx_tag_postCount" ON "Tag"("postCount" DESC);
-
-COMMENT ON TABLE "Tag" IS '标签表：用于文章和相册标签';
-
--- ============================================================================
-
--- 文章表
-CREATE TABLE IF NOT EXISTS "Post" (
-    "id" TEXT PRIMARY KEY,
-    "slug" TEXT NOT NULL UNIQUE,
+-- CreateTable
+CREATE TABLE "Post" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "slug" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "excerpt" TEXT,
     "content" TEXT NOT NULL,
     "coverImage" TEXT,
     "status" "PostStatus" NOT NULL DEFAULT 'DRAFT',
-    "featured" BOOLEAN NOT NULL DEFAULT FALSE,
-    "viewCount" INTEGER NOT NULL DEFAULT 0 CHECK ("viewCount" >= 0),
-    "likeCount" INTEGER NOT NULL DEFAULT 0 CHECK ("likeCount" >= 0),
-    "commentCount" INTEGER NOT NULL DEFAULT 0 CHECK ("commentCount" >= 0),
-    "wordCount" INTEGER NOT NULL DEFAULT 0 CHECK ("wordCount" >= 0),
-    "readingTime" INTEGER NOT NULL DEFAULT 0 CHECK ("readingTime" >= 0),
-    "publishedAt" TIMESTAMP WITH TIME ZONE,
+    "featured" BOOLEAN NOT NULL DEFAULT false,
+    "viewCount" INTEGER NOT NULL DEFAULT 0,
+    "likeCount" INTEGER NOT NULL DEFAULT 0,
+    "commentCount" INTEGER NOT NULL DEFAULT 0,
+    "wordCount" INTEGER NOT NULL DEFAULT 0,
+    "readingTime" INTEGER NOT NULL DEFAULT 0,
+    "publishedAt" TIMESTAMPTZ(6),
     "authorId" TEXT NOT NULL,
     "categoryId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
 );
 
--- Post 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_post_slug" ON "Post"("slug");
-CREATE INDEX IF NOT EXISTS "idx_post_authorId" ON "Post"("authorId");
-CREATE INDEX IF NOT EXISTS "idx_post_categoryId" ON "Post"("categoryId");
-CREATE INDEX IF NOT EXISTS "idx_post_status_published" ON "Post"("status", "publishedAt" DESC);
-CREATE INDEX IF NOT EXISTS "idx_post_featured_published" ON "Post"("featured", "publishedAt" DESC);
-CREATE INDEX IF NOT EXISTS "idx_post_likeCount" ON "Post"("likeCount" DESC);
-
--- 全文搜索索引（可选）
--- CREATE INDEX IF NOT EXISTS "idx_post_fulltext" ON "Post"
--- USING GIN (to_tsvector('english', "title" || ' ' || COALESCE("excerpt", '') || ' ' || "content"));
-
-COMMENT ON TABLE "Post" IS '文章表：存储博客文章内容';
-COMMENT ON COLUMN "Post"."readingTime" IS '阅读时间（分钟），根据 wordCount 计算';
-COMMENT ON COLUMN "Post"."likeCount" IS '点赞数（冗余字段，从 Like 表聚合）';
-COMMENT ON COLUMN "Post"."commentCount" IS '评论数（冗余字段，从 Comment 表聚合）';
-
--- ============================================================================
-
--- 文章-标签关联表
-CREATE TABLE IF NOT EXISTS "PostTag" (
+-- CreateTable
+CREATE TABLE "PostTag" (
     "postId" TEXT NOT NULL,
     "tagId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    PRIMARY KEY ("postId", "tagId")
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PostTag_pkey" PRIMARY KEY ("postId","tagId")
 );
 
--- PostTag 表索引
-CREATE INDEX IF NOT EXISTS "idx_posttag_tagId" ON "PostTag"("tagId");
-
-COMMENT ON TABLE "PostTag" IS '文章-标签关联表：多对多关系';
-
--- ============================================================================
-
--- 评论表
-CREATE TABLE IF NOT EXISTS "Comment" (
-    "id" TEXT PRIMARY KEY,
+-- CreateTable
+CREATE TABLE "Comment" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "content" TEXT NOT NULL,
     "postId" TEXT NOT NULL,
     "authorId" TEXT,
@@ -269,103 +146,65 @@ CREATE TABLE IF NOT EXISTS "Comment" (
     "authorEmail" TEXT,
     "parentId" TEXT,
     "status" "CommentStatus" NOT NULL DEFAULT 'PENDING',
-    "likeCount" INTEGER NOT NULL DEFAULT 0 CHECK ("likeCount" >= 0),
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "likeCount" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
 );
 
--- Comment 表索引
-CREATE INDEX IF NOT EXISTS "idx_comment_postId" ON "Comment"("postId", "status", "createdAt" DESC);
-CREATE INDEX IF NOT EXISTS "idx_comment_authorId" ON "Comment"("authorId");
-CREATE INDEX IF NOT EXISTS "idx_comment_parentId" ON "Comment"("parentId");
-CREATE INDEX IF NOT EXISTS "idx_comment_status" ON "Comment"("status");
-
-COMMENT ON TABLE "Comment" IS '评论表：文章评论系统，支持嵌套回复';
-COMMENT ON COLUMN "Comment"."authorId" IS '登录用户 ID，未登录时为 NULL';
-COMMENT ON COLUMN "Comment"."authorName" IS '游客昵称（未登录用户使用）';
-
--- ============================================================================
-
--- 点赞表
-CREATE TABLE IF NOT EXISTS "Like" (
-    "id" TEXT PRIMARY KEY,
+-- CreateTable
+CREATE TABLE "Like" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "userId" TEXT NOT NULL,
     "targetType" "LikeTargetType" NOT NULL,
     "targetId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Like_pkey" PRIMARY KEY ("id")
 );
 
--- Like 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_like_unique" ON "Like"("userId", "targetType", "targetId");
-CREATE INDEX IF NOT EXISTS "idx_like_target" ON "Like"("targetType", "targetId");
-CREATE INDEX IF NOT EXISTS "idx_like_userId" ON "Like"("userId");
-
-COMMENT ON TABLE "Like" IS '点赞表：记录用户对文章、评论、相册的点赞';
-COMMENT ON COLUMN "Like"."targetType" IS '目标类型：POST/COMMENT/GALLERY';
-COMMENT ON COLUMN "Like"."targetId" IS '目标 ID（postId/commentId/galleryId）';
-
--- ============================================================================
-
--- 文章浏览记录表
-CREATE TABLE IF NOT EXISTS "PostView" (
-    "id" TEXT PRIMARY KEY,
+-- CreateTable
+CREATE TABLE "PostView" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "postId" TEXT NOT NULL,
     "viewerIp" TEXT,
     "viewerId" TEXT,
     "userAgent" TEXT,
     "referer" TEXT,
-    "viewedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "viewedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PostView_pkey" PRIMARY KEY ("id")
 );
 
--- PostView 表索引
-CREATE INDEX IF NOT EXISTS "idx_postview_postId" ON "PostView"("postId", "viewedAt");
-CREATE INDEX IF NOT EXISTS "idx_postview_viewerId" ON "PostView"("viewerId");
-CREATE INDEX IF NOT EXISTS "idx_postview_viewedAt" ON "PostView"("viewedAt");
-
-COMMENT ON TABLE "PostView" IS '文章浏览记录表：用于统计分析和去重';
-
--- ============================================================================
--- 4. 摄影系统表
--- ============================================================================
-
--- 相册表
-CREATE TABLE IF NOT EXISTS "PhotoGallery" (
-    "id" TEXT PRIMARY KEY,
+-- CreateTable
+CREATE TABLE "PhotoGallery" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "title" TEXT NOT NULL,
-    "slug" TEXT NOT NULL UNIQUE,
+    "slug" TEXT NOT NULL,
     "description" TEXT,
     "coverImage" TEXT,
     "coverImageThumb" TEXT,
     "status" "GalleryStatus" NOT NULL DEFAULT 'DRAFT',
-    "featured" BOOLEAN NOT NULL DEFAULT FALSE,
-    "viewCount" INTEGER NOT NULL DEFAULT 0 CHECK ("viewCount" >= 0),
-    "likeCount" INTEGER NOT NULL DEFAULT 0 CHECK ("likeCount" >= 0),
-    "imageCount" INTEGER NOT NULL DEFAULT 0 CHECK ("imageCount" >= 0),
-    "captureDate" TIMESTAMP WITH TIME ZONE,
+    "featured" BOOLEAN NOT NULL DEFAULT false,
+    "viewCount" INTEGER NOT NULL DEFAULT 0,
+    "likeCount" INTEGER NOT NULL DEFAULT 0,
+    "imageCount" INTEGER NOT NULL DEFAULT 0,
+    "captureDate" TIMESTAMPTZ(6),
     "location" TEXT,
     "camera" TEXT,
     "lens" TEXT,
     "authorId" TEXT NOT NULL,
-    "publishedAt" TIMESTAMP WITH TIME ZONE,
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "publishedAt" TIMESTAMPTZ(6),
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "PhotoGallery_pkey" PRIMARY KEY ("id")
 );
 
--- PhotoGallery 表索引
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_gallery_slug" ON "PhotoGallery"("slug");
-CREATE INDEX IF NOT EXISTS "idx_gallery_authorId" ON "PhotoGallery"("authorId");
-CREATE INDEX IF NOT EXISTS "idx_gallery_status_published" ON "PhotoGallery"("status", "publishedAt" DESC);
-CREATE INDEX IF NOT EXISTS "idx_gallery_featured_published" ON "PhotoGallery"("featured", "publishedAt" DESC);
-CREATE INDEX IF NOT EXISTS "idx_gallery_likeCount" ON "PhotoGallery"("likeCount" DESC);
-
-COMMENT ON TABLE "PhotoGallery" IS '相册表：摄影作品集管理';
-COMMENT ON COLUMN "PhotoGallery"."imageCount" IS '图片数量（冗余字段）';
-
--- ============================================================================
-
--- 照片表
-CREATE TABLE IF NOT EXISTS "PhotoImage" (
-    "id" TEXT PRIMARY KEY,
+-- CreateTable
+CREATE TABLE "PhotoImage" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
     "galleryId" TEXT NOT NULL,
     "url" TEXT NOT NULL,
     "thumbnail" TEXT NOT NULL,
@@ -375,222 +214,212 @@ CREATE TABLE IF NOT EXISTS "PhotoImage" (
     "fileSize" INTEGER,
     "mimeType" TEXT,
     "exifData" JSONB,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0 CHECK ("sortOrder" >= 0),
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PhotoImage_pkey" PRIMARY KEY ("id")
 );
 
--- PhotoImage 表索引
-CREATE INDEX IF NOT EXISTS "idx_photoimage_galleryId" ON "PhotoImage"("galleryId", "sortOrder");
-
-COMMENT ON TABLE "PhotoImage" IS '照片表：存储相册中的单张照片信息';
-COMMENT ON COLUMN "PhotoImage"."exifData" IS 'EXIF 信息（JSON 格式）：相机、镜头、光圈、快门等';
-
--- ============================================================================
-
--- 相册-标签关联表
-CREATE TABLE IF NOT EXISTS "GalleryTag" (
+-- CreateTable
+CREATE TABLE "GalleryTag" (
     "galleryId" TEXT NOT NULL,
     "tagId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    PRIMARY KEY ("galleryId", "tagId")
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "GalleryTag_pkey" PRIMARY KEY ("galleryId","tagId")
 );
 
--- GalleryTag 表索引
-CREATE INDEX IF NOT EXISTS "idx_gallerytag_tagId" ON "GalleryTag"("tagId");
+-- CreateTable
+CREATE TABLE "Feedback" (
+    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "content" TEXT NOT NULL,
+    "type" "FeedbackType" NOT NULL,
+    "targetType" TEXT NOT NULL,
+    "targetId" TEXT NOT NULL,
+    "userIp" TEXT,
+    "userAgent" TEXT,
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-COMMENT ON TABLE "GalleryTag" IS '相册-标签关联表：多对多关系';
+    CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
+);
 
--- ============================================================================
--- 5. 触发器：自动更新 updatedAt
--- ============================================================================
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
--- 创建触发器函数
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW."updatedAt" = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- CreateIndex
+CREATE INDEX "User_email_idx" ON "User"("email");
 
--- 为需要的表添加触发器
-DROP TRIGGER IF EXISTS update_user_updated_at ON "User";
-CREATE TRIGGER update_user_updated_at
-    BEFORE UPDATE ON "User"
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- CreateIndex
+CREATE INDEX "User_role_status_idx" ON "User"("role", "status");
 
-DROP TRIGGER IF EXISTS update_category_updated_at ON "Category";
-CREATE TRIGGER update_category_updated_at
-    BEFORE UPDATE ON "Category"
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- CreateIndex
+CREATE INDEX "Account_userId_idx" ON "Account"("userId");
 
-DROP TRIGGER IF EXISTS update_post_updated_at ON "Post";
-CREATE TRIGGER update_post_updated_at
-    BEFORE UPDATE ON "Post"
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- CreateIndex
+CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
 
-DROP TRIGGER IF EXISTS update_comment_updated_at ON "Comment";
-CREATE TRIGGER update_comment_updated_at
-    BEFORE UPDATE ON "Comment"
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- CreateIndex
+CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
 
-DROP TRIGGER IF EXISTS update_gallery_updated_at ON "PhotoGallery";
-CREATE TRIGGER update_gallery_updated_at
-    BEFORE UPDATE ON "PhotoGallery"
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
 
--- ============================================================================
--- 6. 初始数据（可选）
--- ============================================================================
+-- CreateIndex
+CREATE INDEX "Session_expires_idx" ON "Session"("expires");
 
--- 插入默认分类
-INSERT INTO "Category" ("id", "name", "slug", "color", "sortOrder")
-VALUES
-    ('cat_frontend', '前端开发', 'frontend', '#3b82f6', 1),
-    ('cat_backend', '后端开发', 'backend', '#10b981', 2),
-    ('cat_uiux', 'UI/UX 设计', 'ui-ux', '#ec4899', 3),
-    ('cat_programming', '编程语言', 'programming-languages', '#f59e0b', 4),
-    ('cat_tools', '工具与效率', 'tools', '#8b5cf6', 5)
-ON CONFLICT ("slug") DO NOTHING;
+-- CreateIndex
+CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token");
 
--- 插入默认标签
-INSERT INTO "Tag" ("id", "name", "slug")
-VALUES
-    ('tag_nextjs', 'Next.js', 'nextjs'),
-    ('tag_react', 'React', 'react'),
-    ('tag_typescript', 'TypeScript', 'typescript'),
-    ('tag_tailwind', 'Tailwind CSS', 'tailwind'),
-    ('tag_css', 'CSS', 'css'),
-    ('tag_supabase', 'Supabase', 'supabase'),
-    ('tag_postgresql', 'PostgreSQL', 'postgresql'),
-    ('tag_figma', 'Figma', 'figma'),
-    ('tag_design', '设计系统', 'design-system'),
-    ('tag_auth', '身份认证', 'authentication')
-ON CONFLICT ("slug") DO NOTHING;
+-- CreateIndex
+CREATE INDEX "VerificationToken_expires_idx" ON "VerificationToken"("expires");
 
--- ============================================================================
--- 7. 数据库函数（辅助功能）
--- ============================================================================
+-- CreateIndex
+CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
 
--- 函数：计算文章阅读时间
-CREATE OR REPLACE FUNCTION calculate_reading_time(word_count INTEGER)
-RETURNS INTEGER AS $$
-BEGIN
-    -- 假设阅读速度为 250 字/分钟
-    RETURN GREATEST(1, CEIL(word_count::NUMERIC / 250));
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
 
-COMMENT ON FUNCTION calculate_reading_time IS '根据字数计算阅读时间（分钟）';
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
--- 函数：清理过期会话
-CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
-RETURNS INTEGER AS $$
-DECLARE
-    deleted_count INTEGER;
-BEGIN
-    DELETE FROM "Session" WHERE "expires" < NOW();
-    GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    RETURN deleted_count;
-END;
-$$ LANGUAGE plpgsql;
+-- CreateIndex
+CREATE INDEX "Category_sortOrder_idx" ON "Category"("sortOrder");
 
-COMMENT ON FUNCTION cleanup_expired_sessions IS '清理过期会话，返回删除的记录数';
+-- CreateIndex
+CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
 
--- 函数：清理过期验证令牌
-CREATE OR REPLACE FUNCTION cleanup_expired_tokens()
-RETURNS INTEGER AS $$
-DECLARE
-    deleted_count INTEGER;
-BEGIN
-    DELETE FROM "VerificationToken" WHERE "expires" < NOW();
-    GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    RETURN deleted_count;
-END;
-$$ LANGUAGE plpgsql;
+-- CreateIndex
+CREATE UNIQUE INDEX "Tag_slug_key" ON "Tag"("slug");
 
-COMMENT ON FUNCTION cleanup_expired_tokens IS '清理过期验证令牌，返回删除的记录数';
+-- CreateIndex
+CREATE INDEX "Tag_postCount_idx" ON "Tag"("postCount");
 
--- 函数：增加计数器字段
-CREATE OR REPLACE FUNCTION increment(
-    table_name TEXT,
-    row_id TEXT,
-    column_name TEXT
-)
-RETURNS VOID AS $$
-BEGIN
-    EXECUTE format(
-        'UPDATE %I SET %I = %I + 1 WHERE id = $1',
-        table_name,
-        column_name,
-        column_name
-    ) USING row_id;
-END;
-$$ LANGUAGE plpgsql;
+-- CreateIndex
+CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
 
-COMMENT ON FUNCTION increment IS '增加指定表的计数器字段（viewCount, likeCount等）';
+-- CreateIndex
+CREATE INDEX "Post_slug_idx" ON "Post"("slug");
 
--- ============================================================================
--- 8. 权限设置（Supabase）
--- ============================================================================
+-- CreateIndex
+CREATE INDEX "Post_authorId_idx" ON "Post"("authorId");
 
--- 为 authenticated 用户授予权限
--- 注意：在 Supabase 中，通常使用 Row Level Security (RLS) 策略而不是直接授权
--- 以下权限设置供参考，实际使用时应配置 RLS 策略
+-- CreateIndex
+CREATE INDEX "Post_categoryId_idx" ON "Post"("categoryId");
 
--- 示例：允许认证用户读取已发布的文章
--- ALTER TABLE "Post" ENABLE ROW LEVEL SECURITY;
---
--- CREATE POLICY "公开文章可被所有人查看"
--- ON "Post" FOR SELECT
--- USING ("status" = 'PUBLISHED');
---
--- CREATE POLICY "作者可以查看自己的所有文章"
--- ON "Post" FOR SELECT
--- USING (auth.uid()::TEXT = "authorId");
---
--- CREATE POLICY "作者可以更新自己的文章"
--- ON "Post" FOR UPDATE
--- USING (auth.uid()::TEXT = "authorId");
+-- CreateIndex
+CREATE INDEX "Post_status_publishedAt_idx" ON "Post"("status", "publishedAt");
 
--- ============================================================================
--- 9. 完成信息
--- ============================================================================
+-- CreateIndex
+CREATE INDEX "Post_featured_publishedAt_idx" ON "Post"("featured", "publishedAt");
 
--- 显示创建的表
-DO $$
-BEGIN
-    RAISE NOTICE '============================================================================';
-    RAISE NOTICE 'BlogT3 数据库初始化完成！';
-    RAISE NOTICE '============================================================================';
-    RAISE NOTICE '创建的表：';
-    RAISE NOTICE '  用户系统: User, Account, Session, VerificationToken';
-    RAISE NOTICE '  博客系统: Category, Tag, Post, PostTag, Comment, Like, PostView';
-    RAISE NOTICE '  摄影系统: PhotoGallery, PhotoImage, GalleryTag';
-    RAISE NOTICE '';
-    RAISE NOTICE '已创建枚举类型：';
-    RAISE NOTICE '  UserRole, UserStatus, PostStatus, CommentStatus, GalleryStatus, LikeTargetType';
-    RAISE NOTICE '';
-    RAISE NOTICE '已创建触发器：自动更新 updatedAt 字段';
-    RAISE NOTICE '已创建辅助函数：calculate_reading_time, cleanup_expired_sessions, cleanup_expired_tokens';
-    RAISE NOTICE '';
-    RAISE NOTICE '初始数据：';
-    RAISE NOTICE '  - 5 个默认分类';
-    RAISE NOTICE '  - 10 个默认标签';
-    RAISE NOTICE '';
-    RAISE NOTICE '下一步：';
-    RAISE NOTICE '  1. 在 Supabase Dashboard 配置 Row Level Security (RLS) 策略';
-    RAISE NOTICE '  2. 配置 .env 文件中的 DATABASE_URL';
-    RAISE NOTICE '  3. 运行 Prisma 生成客户端：pnpm prisma generate';
-    RAISE NOTICE '  4. 运行种子脚本：pnpm prisma db seed';
-    RAISE NOTICE '============================================================================';
-END $$;
+-- CreateIndex
+CREATE INDEX "Post_likeCount_idx" ON "Post"("likeCount");
 
--- ============================================================================
--- SQL 脚本结束
--- ============================================================================
+-- CreateIndex
+CREATE INDEX "PostTag_tagId_idx" ON "PostTag"("tagId");
+
+-- CreateIndex
+CREATE INDEX "Comment_postId_status_createdAt_idx" ON "Comment"("postId", "status", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Comment_authorId_idx" ON "Comment"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Comment_parentId_idx" ON "Comment"("parentId");
+
+-- CreateIndex
+CREATE INDEX "Comment_status_idx" ON "Comment"("status");
+
+-- CreateIndex
+CREATE INDEX "Like_targetType_targetId_idx" ON "Like"("targetType", "targetId");
+
+-- CreateIndex
+CREATE INDEX "Like_userId_idx" ON "Like"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Like_userId_targetType_targetId_key" ON "Like"("userId", "targetType", "targetId");
+
+-- CreateIndex
+CREATE INDEX "PostView_postId_viewedAt_idx" ON "PostView"("postId", "viewedAt");
+
+-- CreateIndex
+CREATE INDEX "PostView_viewerId_idx" ON "PostView"("viewerId");
+
+-- CreateIndex
+CREATE INDEX "PostView_viewedAt_idx" ON "PostView"("viewedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PhotoGallery_slug_key" ON "PhotoGallery"("slug");
+
+-- CreateIndex
+CREATE INDEX "PhotoGallery_slug_idx" ON "PhotoGallery"("slug");
+
+-- CreateIndex
+CREATE INDEX "PhotoGallery_authorId_idx" ON "PhotoGallery"("authorId");
+
+-- CreateIndex
+CREATE INDEX "PhotoGallery_status_publishedAt_idx" ON "PhotoGallery"("status", "publishedAt");
+
+-- CreateIndex
+CREATE INDEX "PhotoGallery_featured_publishedAt_idx" ON "PhotoGallery"("featured", "publishedAt");
+
+-- CreateIndex
+CREATE INDEX "PhotoGallery_likeCount_idx" ON "PhotoGallery"("likeCount");
+
+-- CreateIndex
+CREATE INDEX "PhotoImage_galleryId_sortOrder_idx" ON "PhotoImage"("galleryId", "sortOrder");
+
+-- CreateIndex
+CREATE INDEX "GalleryTag_tagId_idx" ON "GalleryTag"("tagId");
+
+-- CreateIndex
+CREATE INDEX "Feedback_targetType_targetId_idx" ON "Feedback"("targetType", "targetId");
+
+-- CreateIndex
+CREATE INDEX "Feedback_createdAt_idx" ON "Feedback"("createdAt");
+
+-- AddForeignKey
+ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Post" ADD CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Post" ADD CONSTRAINT "Post_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PostTag" ADD CONSTRAINT "PostTag_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PostTag" ADD CONSTRAINT "PostTag_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Comment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PostView" ADD CONSTRAINT "PostView_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PostView" ADD CONSTRAINT "PostView_viewerId_fkey" FOREIGN KEY ("viewerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PhotoGallery" ADD CONSTRAINT "PhotoGallery_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PhotoImage" ADD CONSTRAINT "PhotoImage_galleryId_fkey" FOREIGN KEY ("galleryId") REFERENCES "PhotoGallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GalleryTag" ADD CONSTRAINT "GalleryTag_galleryId_fkey" FOREIGN KEY ("galleryId") REFERENCES "PhotoGallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GalleryTag" ADD CONSTRAINT "GalleryTag_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
