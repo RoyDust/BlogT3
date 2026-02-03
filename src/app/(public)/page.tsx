@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PostCard } from "~/components/blog/PostCard";
 import { getPosts } from "~/server/actions/posts";
-import { supabase } from "~/lib/supabase";
+import { getCategoriesByIds, getCategoriesWithPostCount } from "~/server/actions/categories";
 
 export const metadata: Metadata = {
   title: "BlogT3 - 现代化博客平台",
@@ -20,7 +20,7 @@ export default async function HomePage() {
     color?: string;
   };
 
-  // Get 3 most recent posts
+  // Get 3 most recent posts (with author, category, and tags included)
   const postsResult = await getPosts({
     status: "PUBLISHED",
     limit: 3,
@@ -29,43 +29,19 @@ export default async function HomePage() {
   });
   const posts = postsResult.success ? (postsResult.data ?? []) : [];
 
-  // Get categories for posts
-  const categoryIds = [
-    ...new Set(posts.map((p: any) => p.categoryId)),
-  ] as string[];
-  const { data: categories } = await supabase
-    .from("Category")
-    .select("id, name, slug, color")
-    .in("id", categoryIds);
-
-  const categoryMap = new Map<string, Category>(
-    categories?.map((c) => [c.id, c as Category]) ?? [],
-  );
-
-  // Enrich posts with category data
-  const recentPosts = posts.map((post) => ({
+  // Transform posts to include proper structure
+  const recentPosts = posts.map((post: any) => ({
     ...post,
-    category: categoryMap.get(post.categoryId),
-    tags: [], // We'll skip tags for now on the home page
+    author: post.User,
+    category: post.Category,
+    tags: post.PostTag?.map((pt: any) => pt.Tag) ?? [],
   }));
 
   // Get all categories with post counts
-  const { data: allCategories } = await supabase
-    .from("Category")
-    .select("id, name, slug, description")
-    .order("name");
-
-  // Get post counts for each category
-  const categoriesWithCounts = await Promise.all(
-    (allCategories ?? []).map(async (category) => {
-      const { count } = await supabase
-        .from("Post")
-        .select("*", { count: "exact", head: true })
-        .eq("categoryId", category.id)
-        .eq("status", "PUBLISHED");
-      return { ...category, count: count ?? 0 };
-    }),
-  );
+  const categoriesWithCountsResult = await getCategoriesWithPostCount();
+  const categoriesWithCounts = categoriesWithCountsResult.success
+    ? (categoriesWithCountsResult.data ?? [])
+    : [];
 
   return (
     <div className="space-y-8">

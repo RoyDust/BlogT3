@@ -45,6 +45,9 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
   const photosResult = await getGalleryPhotos(gallery.id);
   const photos = photosResult.success ? photosResult.data ?? [] : [];
 
+  // Extract tags from GalleryTag relation
+  const tags = (gallery as any).GalleryTag?.map((gt: any) => gt.Tag.name) ?? [];
+
   const formattedDate = gallery.publishedAt
     ? new Date(gallery.publishedAt).toLocaleDateString('zh-CN', {
         year: 'numeric',
@@ -87,11 +90,11 @@ export default async function PhotoGalleryDetailPage({ params }: PageProps) {
               <span>{formattedDate}</span>
             </div>
 
-            {gallery.tags && gallery.tags.length > 0 && (
+            {tags && tags.length > 0 && (
               <div className="flex items-center gap-2">
                 <Tag className="h-5 w-5" />
                 <div className="flex gap-2">
-                  {gallery.tags.map((tag: string) => (
+                  {tags.map((tag: string) => (
                     <span
                       key={tag}
                       className="px-3 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm"

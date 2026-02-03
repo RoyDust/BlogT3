@@ -2424,6 +2424,7 @@ export namespace Prisma {
   export type UserCountOutputType = {
     Account: number
     Comment: number
+    Like: number
     PhotoGallery: number
     Post: number
     PostView: number
@@ -2433,6 +2434,7 @@ export namespace Prisma {
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Account?: boolean | UserCountOutputTypeCountAccountArgs
     Comment?: boolean | UserCountOutputTypeCountCommentArgs
+    Like?: boolean | UserCountOutputTypeCountLikeArgs
     PhotoGallery?: boolean | UserCountOutputTypeCountPhotoGalleryArgs
     Post?: boolean | UserCountOutputTypeCountPostArgs
     PostView?: boolean | UserCountOutputTypeCountPostViewArgs
@@ -2462,6 +2464,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountCommentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CommentWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountLikeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LikeWhereInput
   }
 
   /**
@@ -8362,6 +8371,7 @@ export namespace Prisma {
     targetType?: boolean
     targetId?: boolean
     createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["like"]>
 
   export type LikeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8370,6 +8380,7 @@ export namespace Prisma {
     targetType?: boolean
     targetId?: boolean
     createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["like"]>
 
   export type LikeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8378,6 +8389,7 @@ export namespace Prisma {
     targetType?: boolean
     targetId?: boolean
     createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["like"]>
 
   export type LikeSelectScalar = {
@@ -8389,10 +8401,21 @@ export namespace Prisma {
   }
 
   export type LikeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "targetType" | "targetId" | "createdAt", ExtArgs["result"]["like"]>
+  export type LikeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type LikeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type LikeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
 
   export type $LikePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Like"
-    objects: {}
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
@@ -8793,6 +8816,7 @@ export namespace Prisma {
    */
   export interface Prisma__LikeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8844,6 +8868,10 @@ export namespace Prisma {
      */
     omit?: LikeOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
+    /**
      * Filter, which Like to fetch.
      */
     where: LikeWhereUniqueInput
@@ -8862,6 +8890,10 @@ export namespace Prisma {
      */
     omit?: LikeOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
+    /**
      * Filter, which Like to fetch.
      */
     where: LikeWhereUniqueInput
@@ -8879,6 +8911,10 @@ export namespace Prisma {
      * Omit specific fields from the Like
      */
     omit?: LikeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
     /**
      * Filter, which Like to fetch.
      */
@@ -8928,6 +8964,10 @@ export namespace Prisma {
      */
     omit?: LikeOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
+    /**
      * Filter, which Like to fetch.
      */
     where?: LikeWhereInput
@@ -8976,6 +9016,10 @@ export namespace Prisma {
      */
     omit?: LikeOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
+    /**
      * Filter, which Likes to fetch.
      */
     where?: LikeWhereInput
@@ -9019,6 +9063,10 @@ export namespace Prisma {
      */
     omit?: LikeOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
+    /**
      * The data needed to create a Like.
      */
     data: XOR<LikeCreateInput, LikeUncheckedCreateInput>
@@ -9052,6 +9100,10 @@ export namespace Prisma {
      */
     data: LikeCreateManyInput | LikeCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -9066,6 +9118,10 @@ export namespace Prisma {
      * Omit specific fields from the Like
      */
     omit?: LikeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
     /**
      * The data needed to update a Like.
      */
@@ -9118,6 +9174,10 @@ export namespace Prisma {
      * Limit how many Likes to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -9132,6 +9192,10 @@ export namespace Prisma {
      * Omit specific fields from the Like
      */
     omit?: LikeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
     /**
      * The filter to search for the Like to update in case it exists.
      */
@@ -9158,6 +9222,10 @@ export namespace Prisma {
      * Omit specific fields from the Like
      */
     omit?: LikeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
     /**
      * Filter which Like to delete.
      */
@@ -9190,6 +9258,10 @@ export namespace Prisma {
      * Omit specific fields from the Like
      */
     omit?: LikeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
   }
 
 
@@ -17654,6 +17726,7 @@ export namespace Prisma {
     updatedAt?: boolean
     Account?: boolean | User$AccountArgs<ExtArgs>
     Comment?: boolean | User$CommentArgs<ExtArgs>
+    Like?: boolean | User$LikeArgs<ExtArgs>
     PhotoGallery?: boolean | User$PhotoGalleryArgs<ExtArgs>
     Post?: boolean | User$PostArgs<ExtArgs>
     PostView?: boolean | User$PostViewArgs<ExtArgs>
@@ -17707,6 +17780,7 @@ export namespace Prisma {
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Account?: boolean | User$AccountArgs<ExtArgs>
     Comment?: boolean | User$CommentArgs<ExtArgs>
+    Like?: boolean | User$LikeArgs<ExtArgs>
     PhotoGallery?: boolean | User$PhotoGalleryArgs<ExtArgs>
     Post?: boolean | User$PostArgs<ExtArgs>
     PostView?: boolean | User$PostViewArgs<ExtArgs>
@@ -17721,6 +17795,7 @@ export namespace Prisma {
     objects: {
       Account: Prisma.$AccountPayload<ExtArgs>[]
       Comment: Prisma.$CommentPayload<ExtArgs>[]
+      Like: Prisma.$LikePayload<ExtArgs>[]
       PhotoGallery: Prisma.$PhotoGalleryPayload<ExtArgs>[]
       Post: Prisma.$PostPayload<ExtArgs>[]
       PostView: Prisma.$PostViewPayload<ExtArgs>[]
@@ -18134,6 +18209,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     Account<T extends User$AccountArgs<ExtArgs> = {}>(args?: Subset<T, User$AccountArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     Comment<T extends User$CommentArgs<ExtArgs> = {}>(args?: Subset<T, User$CommentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    Like<T extends User$LikeArgs<ExtArgs> = {}>(args?: Subset<T, User$LikeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LikePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     PhotoGallery<T extends User$PhotoGalleryArgs<ExtArgs> = {}>(args?: Subset<T, User$PhotoGalleryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PhotoGalleryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     Post<T extends User$PostArgs<ExtArgs> = {}>(args?: Subset<T, User$PostArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     PostView<T extends User$PostViewArgs<ExtArgs> = {}>(args?: Subset<T, User$PostViewArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostViewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -18611,6 +18687,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: CommentScalarFieldEnum | CommentScalarFieldEnum[]
+  }
+
+  /**
+   * User.Like
+   */
+  export type User$LikeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Like
+     */
+    select?: LikeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Like
+     */
+    omit?: LikeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LikeInclude<ExtArgs> | null
+    where?: LikeWhereInput
+    orderBy?: LikeOrderByWithRelationInput | LikeOrderByWithRelationInput[]
+    cursor?: LikeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LikeScalarFieldEnum | LikeScalarFieldEnum[]
   }
 
   /**
@@ -20559,6 +20659,7 @@ export namespace Prisma {
     targetType?: EnumLikeTargetTypeFilter<"Like"> | $Enums.LikeTargetType
     targetId?: StringFilter<"Like"> | string
     createdAt?: DateTimeFilter<"Like"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type LikeOrderByWithRelationInput = {
@@ -20567,6 +20668,7 @@ export namespace Prisma {
     targetType?: SortOrder
     targetId?: SortOrder
     createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
   }
 
   export type LikeWhereUniqueInput = Prisma.AtLeast<{
@@ -20579,6 +20681,7 @@ export namespace Prisma {
     targetType?: EnumLikeTargetTypeFilter<"Like"> | $Enums.LikeTargetType
     targetId?: StringFilter<"Like"> | string
     createdAt?: DateTimeFilter<"Like"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "userId_targetType_targetId">
 
   export type LikeOrderByWithAggregationInput = {
@@ -21211,6 +21314,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     Account?: AccountListRelationFilter
     Comment?: CommentListRelationFilter
+    Like?: LikeListRelationFilter
     PhotoGallery?: PhotoGalleryListRelationFilter
     Post?: PostListRelationFilter
     PostView?: PostViewListRelationFilter
@@ -21231,6 +21335,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     Account?: AccountOrderByRelationAggregateInput
     Comment?: CommentOrderByRelationAggregateInput
+    Like?: LikeOrderByRelationAggregateInput
     PhotoGallery?: PhotoGalleryOrderByRelationAggregateInput
     Post?: PostOrderByRelationAggregateInput
     PostView?: PostViewOrderByRelationAggregateInput
@@ -21254,6 +21359,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     Account?: AccountListRelationFilter
     Comment?: CommentListRelationFilter
+    Like?: LikeListRelationFilter
     PhotoGallery?: PhotoGalleryListRelationFilter
     Post?: PostListRelationFilter
     PostView?: PostViewListRelationFilter
@@ -21761,10 +21867,10 @@ export namespace Prisma {
 
   export type LikeCreateInput = {
     id?: string
-    userId: string
     targetType: $Enums.LikeTargetType
     targetId: string
     createdAt?: Date | string
+    user: UserCreateNestedOneWithoutLikeInput
   }
 
   export type LikeUncheckedCreateInput = {
@@ -21777,10 +21883,10 @@ export namespace Prisma {
 
   export type LikeUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
     targetType?: EnumLikeTargetTypeFieldUpdateOperationsInput | $Enums.LikeTargetType
     targetId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutLikeNestedInput
   }
 
   export type LikeUncheckedUpdateInput = {
@@ -21801,7 +21907,6 @@ export namespace Prisma {
 
   export type LikeUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
     targetType?: EnumLikeTargetTypeFieldUpdateOperationsInput | $Enums.LikeTargetType
     targetId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22478,6 +22583,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountCreateNestedManyWithoutUserInput
     Comment?: CommentCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
     Post?: PostCreateNestedManyWithoutUserInput
     PostView?: PostViewCreateNestedManyWithoutUserInput
@@ -22498,6 +22604,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountUncheckedCreateNestedManyWithoutUserInput
     Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
     Post?: PostUncheckedCreateNestedManyWithoutUserInput
     PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
@@ -22518,6 +22625,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUpdateManyWithoutUserNestedInput
     Comment?: CommentUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
     Post?: PostUpdateManyWithoutUserNestedInput
     PostView?: PostViewUpdateManyWithoutUserNestedInput
@@ -22538,6 +22646,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
     Post?: PostUncheckedUpdateManyWithoutUserNestedInput
     PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
@@ -23638,6 +23747,12 @@ export namespace Prisma {
     none?: AccountWhereInput
   }
 
+  export type LikeListRelationFilter = {
+    every?: LikeWhereInput
+    some?: LikeWhereInput
+    none?: LikeWhereInput
+  }
+
   export type PhotoGalleryListRelationFilter = {
     every?: PhotoGalleryWhereInput
     some?: PhotoGalleryWhereInput
@@ -23651,6 +23766,10 @@ export namespace Prisma {
   }
 
   export type AccountOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LikeOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -23955,8 +24074,22 @@ export namespace Prisma {
     update?: XOR<XOR<TagUpdateToOneWithWhereWithoutGalleryTagInput, TagUpdateWithoutGalleryTagInput>, TagUncheckedUpdateWithoutGalleryTagInput>
   }
 
+  export type UserCreateNestedOneWithoutLikeInput = {
+    create?: XOR<UserCreateWithoutLikeInput, UserUncheckedCreateWithoutLikeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutLikeInput
+    connect?: UserWhereUniqueInput
+  }
+
   export type EnumLikeTargetTypeFieldUpdateOperationsInput = {
     set?: $Enums.LikeTargetType
+  }
+
+  export type UserUpdateOneRequiredWithoutLikeNestedInput = {
+    create?: XOR<UserCreateWithoutLikeInput, UserUncheckedCreateWithoutLikeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutLikeInput
+    upsert?: UserUpsertWithoutLikeInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutLikeInput, UserUpdateWithoutLikeInput>, UserUncheckedUpdateWithoutLikeInput>
   }
 
   export type GalleryTagCreateNestedManyWithoutPhotoGalleryInput = {
@@ -24411,6 +24544,13 @@ export namespace Prisma {
     connect?: CommentWhereUniqueInput | CommentWhereUniqueInput[]
   }
 
+  export type LikeCreateNestedManyWithoutUserInput = {
+    create?: XOR<LikeCreateWithoutUserInput, LikeUncheckedCreateWithoutUserInput> | LikeCreateWithoutUserInput[] | LikeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LikeCreateOrConnectWithoutUserInput | LikeCreateOrConnectWithoutUserInput[]
+    createMany?: LikeCreateManyUserInputEnvelope
+    connect?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+  }
+
   export type PhotoGalleryCreateNestedManyWithoutUserInput = {
     create?: XOR<PhotoGalleryCreateWithoutUserInput, PhotoGalleryUncheckedCreateWithoutUserInput> | PhotoGalleryCreateWithoutUserInput[] | PhotoGalleryUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PhotoGalleryCreateOrConnectWithoutUserInput | PhotoGalleryCreateOrConnectWithoutUserInput[]
@@ -24451,6 +24591,13 @@ export namespace Prisma {
     connectOrCreate?: CommentCreateOrConnectWithoutUserInput | CommentCreateOrConnectWithoutUserInput[]
     createMany?: CommentCreateManyUserInputEnvelope
     connect?: CommentWhereUniqueInput | CommentWhereUniqueInput[]
+  }
+
+  export type LikeUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<LikeCreateWithoutUserInput, LikeUncheckedCreateWithoutUserInput> | LikeCreateWithoutUserInput[] | LikeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LikeCreateOrConnectWithoutUserInput | LikeCreateOrConnectWithoutUserInput[]
+    createMany?: LikeCreateManyUserInputEnvelope
+    connect?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
   }
 
   export type PhotoGalleryUncheckedCreateNestedManyWithoutUserInput = {
@@ -24515,6 +24662,20 @@ export namespace Prisma {
     update?: CommentUpdateWithWhereUniqueWithoutUserInput | CommentUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: CommentUpdateManyWithWhereWithoutUserInput | CommentUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: CommentScalarWhereInput | CommentScalarWhereInput[]
+  }
+
+  export type LikeUpdateManyWithoutUserNestedInput = {
+    create?: XOR<LikeCreateWithoutUserInput, LikeUncheckedCreateWithoutUserInput> | LikeCreateWithoutUserInput[] | LikeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LikeCreateOrConnectWithoutUserInput | LikeCreateOrConnectWithoutUserInput[]
+    upsert?: LikeUpsertWithWhereUniqueWithoutUserInput | LikeUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: LikeCreateManyUserInputEnvelope
+    set?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    disconnect?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    delete?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    connect?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    update?: LikeUpdateWithWhereUniqueWithoutUserInput | LikeUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: LikeUpdateManyWithWhereWithoutUserInput | LikeUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: LikeScalarWhereInput | LikeScalarWhereInput[]
   }
 
   export type PhotoGalleryUpdateManyWithoutUserNestedInput = {
@@ -24599,6 +24760,20 @@ export namespace Prisma {
     update?: CommentUpdateWithWhereUniqueWithoutUserInput | CommentUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: CommentUpdateManyWithWhereWithoutUserInput | CommentUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: CommentScalarWhereInput | CommentScalarWhereInput[]
+  }
+
+  export type LikeUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<LikeCreateWithoutUserInput, LikeUncheckedCreateWithoutUserInput> | LikeCreateWithoutUserInput[] | LikeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: LikeCreateOrConnectWithoutUserInput | LikeCreateOrConnectWithoutUserInput[]
+    upsert?: LikeUpsertWithWhereUniqueWithoutUserInput | LikeUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: LikeCreateManyUserInputEnvelope
+    set?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    disconnect?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    delete?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    connect?: LikeWhereUniqueInput | LikeWhereUniqueInput[]
+    update?: LikeUpdateWithWhereUniqueWithoutUserInput | LikeUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: LikeUpdateManyWithWhereWithoutUserInput | LikeUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: LikeScalarWhereInput | LikeScalarWhereInput[]
   }
 
   export type PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput = {
@@ -25013,6 +25188,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt: Date | string
     Comment?: CommentCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
     Post?: PostCreateNestedManyWithoutUserInput
     PostView?: PostViewCreateNestedManyWithoutUserInput
@@ -25032,6 +25208,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt: Date | string
     Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
     Post?: PostUncheckedCreateNestedManyWithoutUserInput
     PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
@@ -25067,6 +25244,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Comment?: CommentUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
     Post?: PostUpdateManyWithoutUserNestedInput
     PostView?: PostViewUpdateManyWithoutUserNestedInput
@@ -25086,6 +25264,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
     Post?: PostUncheckedUpdateManyWithoutUserNestedInput
     PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
@@ -25201,6 +25380,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt: Date | string
     Account?: AccountCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
     Post?: PostCreateNestedManyWithoutUserInput
     PostView?: PostViewCreateNestedManyWithoutUserInput
@@ -25220,6 +25400,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt: Date | string
     Account?: AccountUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
     Post?: PostUncheckedCreateNestedManyWithoutUserInput
     PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
@@ -25377,6 +25558,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
     Post?: PostUpdateManyWithoutUserNestedInput
     PostView?: PostViewUpdateManyWithoutUserNestedInput
@@ -25396,6 +25578,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
     Post?: PostUncheckedUpdateManyWithoutUserNestedInput
     PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
@@ -25695,6 +25878,102 @@ export namespace Prisma {
     PostTag?: PostTagUncheckedUpdateManyWithoutTagNestedInput
   }
 
+  export type UserCreateWithoutLikeInput = {
+    id?: string
+    email: string
+    emailVerified?: Date | string | null
+    name?: string | null
+    password?: string | null
+    avatar?: string | null
+    bio?: string | null
+    role?: $Enums.UserRole
+    status?: $Enums.UserStatus
+    createdAt?: Date | string
+    updatedAt: Date | string
+    Account?: AccountCreateNestedManyWithoutUserInput
+    Comment?: CommentCreateNestedManyWithoutUserInput
+    PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
+    Post?: PostCreateNestedManyWithoutUserInput
+    PostView?: PostViewCreateNestedManyWithoutUserInput
+    Session?: SessionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutLikeInput = {
+    id?: string
+    email: string
+    emailVerified?: Date | string | null
+    name?: string | null
+    password?: string | null
+    avatar?: string | null
+    bio?: string | null
+    role?: $Enums.UserRole
+    status?: $Enums.UserStatus
+    createdAt?: Date | string
+    updatedAt: Date | string
+    Account?: AccountUncheckedCreateNestedManyWithoutUserInput
+    Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
+    Post?: PostUncheckedCreateNestedManyWithoutUserInput
+    PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
+    Session?: SessionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutLikeInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutLikeInput, UserUncheckedCreateWithoutLikeInput>
+  }
+
+  export type UserUpsertWithoutLikeInput = {
+    update: XOR<UserUpdateWithoutLikeInput, UserUncheckedUpdateWithoutLikeInput>
+    create: XOR<UserCreateWithoutLikeInput, UserUncheckedCreateWithoutLikeInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutLikeInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutLikeInput, UserUncheckedUpdateWithoutLikeInput>
+  }
+
+  export type UserUpdateWithoutLikeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Account?: AccountUpdateManyWithoutUserNestedInput
+    Comment?: CommentUpdateManyWithoutUserNestedInput
+    PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
+    Post?: PostUpdateManyWithoutUserNestedInput
+    PostView?: PostViewUpdateManyWithoutUserNestedInput
+    Session?: SessionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutLikeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
+    Post?: PostUncheckedUpdateManyWithoutUserNestedInput
+    PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
+    Session?: SessionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type GalleryTagCreateWithoutPhotoGalleryInput = {
     createdAt?: Date | string
     Tag: TagCreateNestedOneWithoutGalleryTagInput
@@ -25729,6 +26008,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountCreateNestedManyWithoutUserInput
     Comment?: CommentCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     Post?: PostCreateNestedManyWithoutUserInput
     PostView?: PostViewCreateNestedManyWithoutUserInput
     Session?: SessionCreateNestedManyWithoutUserInput
@@ -25748,6 +26028,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountUncheckedCreateNestedManyWithoutUserInput
     Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     Post?: PostUncheckedCreateNestedManyWithoutUserInput
     PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
     Session?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -25846,6 +26127,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUpdateManyWithoutUserNestedInput
     Comment?: CommentUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     Post?: PostUpdateManyWithoutUserNestedInput
     PostView?: PostViewUpdateManyWithoutUserNestedInput
     Session?: SessionUpdateManyWithoutUserNestedInput
@@ -25865,6 +26147,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     Post?: PostUncheckedUpdateManyWithoutUserNestedInput
     PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
     Session?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -26064,6 +26347,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountCreateNestedManyWithoutUserInput
     Comment?: CommentCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
     PostView?: PostViewCreateNestedManyWithoutUserInput
     Session?: SessionCreateNestedManyWithoutUserInput
@@ -26083,6 +26367,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountUncheckedCreateNestedManyWithoutUserInput
     Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
     PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
     Session?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -26213,6 +26498,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUpdateManyWithoutUserNestedInput
     Comment?: CommentUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
     PostView?: PostViewUpdateManyWithoutUserNestedInput
     Session?: SessionUpdateManyWithoutUserNestedInput
@@ -26232,6 +26518,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
     PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
     Session?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -26557,6 +26844,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountCreateNestedManyWithoutUserInput
     Comment?: CommentCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
     Post?: PostCreateNestedManyWithoutUserInput
     Session?: SessionCreateNestedManyWithoutUserInput
@@ -26576,6 +26864,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountUncheckedCreateNestedManyWithoutUserInput
     Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
     Post?: PostUncheckedCreateNestedManyWithoutUserInput
     Session?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -26668,6 +26957,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUpdateManyWithoutUserNestedInput
     Comment?: CommentUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
     Post?: PostUpdateManyWithoutUserNestedInput
     Session?: SessionUpdateManyWithoutUserNestedInput
@@ -26687,6 +26977,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
     Post?: PostUncheckedUpdateManyWithoutUserNestedInput
     Session?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -26706,6 +26997,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountCreateNestedManyWithoutUserInput
     Comment?: CommentCreateNestedManyWithoutUserInput
+    Like?: LikeCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryCreateNestedManyWithoutUserInput
     Post?: PostCreateNestedManyWithoutUserInput
     PostView?: PostViewCreateNestedManyWithoutUserInput
@@ -26725,6 +27017,7 @@ export namespace Prisma {
     updatedAt: Date | string
     Account?: AccountUncheckedCreateNestedManyWithoutUserInput
     Comment?: CommentUncheckedCreateNestedManyWithoutUserInput
+    Like?: LikeUncheckedCreateNestedManyWithoutUserInput
     PhotoGallery?: PhotoGalleryUncheckedCreateNestedManyWithoutUserInput
     Post?: PostUncheckedCreateNestedManyWithoutUserInput
     PostView?: PostViewUncheckedCreateNestedManyWithoutUserInput
@@ -26760,6 +27053,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUpdateManyWithoutUserNestedInput
     Comment?: CommentUpdateManyWithoutUserNestedInput
+    Like?: LikeUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUpdateManyWithoutUserNestedInput
     Post?: PostUpdateManyWithoutUserNestedInput
     PostView?: PostViewUpdateManyWithoutUserNestedInput
@@ -26779,6 +27073,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Account?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Comment?: CommentUncheckedUpdateManyWithoutUserNestedInput
+    Like?: LikeUncheckedUpdateManyWithoutUserNestedInput
     PhotoGallery?: PhotoGalleryUncheckedUpdateManyWithoutUserNestedInput
     Post?: PostUncheckedUpdateManyWithoutUserNestedInput
     PostView?: PostViewUncheckedUpdateManyWithoutUserNestedInput
@@ -26931,6 +27226,30 @@ export namespace Prisma {
 
   export type CommentCreateManyUserInputEnvelope = {
     data: CommentCreateManyUserInput | CommentCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LikeCreateWithoutUserInput = {
+    id?: string
+    targetType: $Enums.LikeTargetType
+    targetId: string
+    createdAt?: Date | string
+  }
+
+  export type LikeUncheckedCreateWithoutUserInput = {
+    id?: string
+    targetType: $Enums.LikeTargetType
+    targetId: string
+    createdAt?: Date | string
+  }
+
+  export type LikeCreateOrConnectWithoutUserInput = {
+    where: LikeWhereUniqueInput
+    create: XOR<LikeCreateWithoutUserInput, LikeUncheckedCreateWithoutUserInput>
+  }
+
+  export type LikeCreateManyUserInputEnvelope = {
+    data: LikeCreateManyUserInput | LikeCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -27145,6 +27464,33 @@ export namespace Prisma {
   export type CommentUpdateManyWithWhereWithoutUserInput = {
     where: CommentScalarWhereInput
     data: XOR<CommentUpdateManyMutationInput, CommentUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type LikeUpsertWithWhereUniqueWithoutUserInput = {
+    where: LikeWhereUniqueInput
+    update: XOR<LikeUpdateWithoutUserInput, LikeUncheckedUpdateWithoutUserInput>
+    create: XOR<LikeCreateWithoutUserInput, LikeUncheckedCreateWithoutUserInput>
+  }
+
+  export type LikeUpdateWithWhereUniqueWithoutUserInput = {
+    where: LikeWhereUniqueInput
+    data: XOR<LikeUpdateWithoutUserInput, LikeUncheckedUpdateWithoutUserInput>
+  }
+
+  export type LikeUpdateManyWithWhereWithoutUserInput = {
+    where: LikeScalarWhereInput
+    data: XOR<LikeUpdateManyMutationInput, LikeUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type LikeScalarWhereInput = {
+    AND?: LikeScalarWhereInput | LikeScalarWhereInput[]
+    OR?: LikeScalarWhereInput[]
+    NOT?: LikeScalarWhereInput | LikeScalarWhereInput[]
+    id?: StringFilter<"Like"> | string
+    userId?: StringFilter<"Like"> | string
+    targetType?: EnumLikeTargetTypeFilter<"Like"> | $Enums.LikeTargetType
+    targetId?: StringFilter<"Like"> | string
+    createdAt?: DateTimeFilter<"Like"> | Date | string
   }
 
   export type PhotoGalleryUpsertWithWhereUniqueWithoutUserInput = {
@@ -27640,6 +27986,13 @@ export namespace Prisma {
     updatedAt: Date | string
   }
 
+  export type LikeCreateManyUserInput = {
+    id?: string
+    targetType: $Enums.LikeTargetType
+    targetId: string
+    createdAt?: Date | string
+  }
+
   export type PhotoGalleryCreateManyUserInput = {
     id?: string
     title: string
@@ -27780,6 +28133,27 @@ export namespace Prisma {
     likeCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LikeUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    targetType?: EnumLikeTargetTypeFieldUpdateOperationsInput | $Enums.LikeTargetType
+    targetId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LikeUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    targetType?: EnumLikeTargetTypeFieldUpdateOperationsInput | $Enums.LikeTargetType
+    targetId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LikeUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    targetType?: EnumLikeTargetTypeFieldUpdateOperationsInput | $Enums.LikeTargetType
+    targetId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PhotoGalleryUpdateWithoutUserInput = {

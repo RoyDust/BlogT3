@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { supabase } from "~/lib/supabase";
 
 import {
   createTRPCRouter,
@@ -16,59 +15,71 @@ export const postRouter = createTRPCRouter({
         offset: z.number().min(0).default(0),
       })
     )
-    .query(async ({ input }) => {
-      const { data, error, count } = await supabase
-        .from("posts")
-        .select("*, categories(name, slug, color)", { count: "exact" })
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .range(input.offset, input.offset + input.limit - 1);
-
-      if (error) throw new Error(error.message);
+    .query(async ({ ctx, input }) => {
+      const [posts, total] = await Promise.all([
+        ctx.db.post.findMany({
+          where: {
+            status: "PUBLISHED",
+          },
+          include: {
+            Category: {
+              select: {
+                name: true,
+                slug: true,
+                color: true,
+              },
+            },
+          },
+          orderBy: {
+            publishedAt: "desc",
+          },
+          skip: input.offset,
+          take: input.limit,
+        }),
+        ctx.db.post.count({
+          where: {
+            status: "PUBLISHED",
+          },
+        }),
+      ]);
 
       return {
-        posts: data ?? [],
-        total: count ?? 0,
+        posts,
+        total,
       };
     }),
 
   // 根据 slug 获取文章详情
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
-    .query(async ({ input }) => {
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*, categories(name, slug, color)")
-        .eq("slug", input.slug)
-        .eq("status", "published")
-        .single();
+    .query(async ({ ctx, input }) => {
+      const post = await ctx.db.post.findUnique({
+        where: {
+          slug: input.slug,
+          status: "PUBLISHED",
+        },
+        include: {
+          Category: {
+            select: {
+              name: true,
+              slug: true,
+              color: true,
+            },
+          },
+        },
+      });
 
-      if (error) throw new Error(error.message);
-
-      // 增加阅读数
-      if (data) {
-        await supabase
-          .from("posts")
-          .update({ view_count: (data.view_count ?? 0) + 1 })
-          .eq("id", data.id);
+      if (!post) {
+        throw new Error("文章不存在");
       }
 
-      return data as {
-        id: string;
-        title: string;
-        slug: string;
-        content: string | null;
-        excerpt: string | null;
-        cover_image: string | null;
-        status: string;
-        published_at: string | null;
-        view_count: number;
-        author_id: string;
-        category_id: string | null;
-        created_at: string;
-        updated_at: string;
-        categories: { name: string; slug: string; color: string } | null;
-      };
+      // 增加阅读数
+      await ctx.db.post.update({
+        where: { id: post.id },
+        data: { viewCount: { increment: 1 } },
+      });
+
+      return post;
     }),
 
   // 根据分类获取文章
@@ -80,31 +91,49 @@ export const postRouter = createTRPCRouter({
         offset: z.number().min(0).default(0),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       // 先获取分类 ID
-      const { data: category } = await supabase
-        .from("categories")
-        .select("id")
-        .eq("slug", input.categorySlug)
-        .single();
+      const category = await ctx.db.category.findUnique({
+        where: { slug: input.categorySlug },
+        select: { id: true },
+      });
 
       if (!category) {
         return { posts: [], total: 0 };
       }
 
-      const { data, error, count } = await supabase
-        .from("posts")
-        .select("*, categories(name, slug, color)", { count: "exact" })
-        .eq("category_id", category.id)
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .range(input.offset, input.offset + input.limit - 1);
-
-      if (error) throw new Error(error.message);
+      const [posts, total] = await Promise.all([
+        ctx.db.post.findMany({
+          where: {
+            categoryId: category.id,
+            status: "PUBLISHED",
+          },
+          include: {
+            Category: {
+              select: {
+                name: true,
+                slug: true,
+                color: true,
+              },
+            },
+          },
+          orderBy: {
+            publishedAt: "desc",
+          },
+          skip: input.offset,
+          take: input.limit,
+        }),
+        ctx.db.post.count({
+          where: {
+            categoryId: category.id,
+            status: "PUBLISHED",
+          },
+        }),
+      ]);
 
       return {
-        posts: data ?? [],
-        total: count ?? 0,
+        posts,
+        total,
       };
     }),
 
@@ -116,9 +145,9 @@ export const postRouter = createTRPCRouter({
         slug: z.string().min(1),
         content: z.string().optional(),
         excerpt: z.string().optional(),
-        cover_image: z.string().optional(),
-        category_id: z.string().optional(),
-        status: z.enum(["draft", "published", "archived"]).default("draft"),
+        coverImage: z.string().optional(),
+        categoryId: z.string(),
+        status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("DRAFT"),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -126,33 +155,22 @@ export const postRouter = createTRPCRouter({
         throw new Error("未授权：需要登录才能创建文章");
       }
 
-      const { data, error } = await supabase
-        .from("posts")
-        .insert({
-          ...input,
-          author_id: ctx.session.user.id,
-          published_at: input.status === "published" ? new Date().toISOString() : null,
-        })
-        .select()
-        .single();
+      const post = await ctx.db.post.create({
+        data: {
+          title: input.title,
+          slug: input.slug,
+          content: input.content ?? "",
+          excerpt: input.excerpt,
+          coverImage: input.coverImage,
+          categoryId: input.categoryId,
+          status: input.status,
+          authorId: ctx.session.user.id,
+          publishedAt: input.status === "PUBLISHED" ? new Date() : null,
+          updatedAt: new Date(),
+        },
+      });
 
-      if (error) throw new Error(error.message);
-
-      return data as {
-        id: string;
-        title: string;
-        slug: string;
-        content: string | null;
-        excerpt: string | null;
-        cover_image: string | null;
-        status: string;
-        published_at: string | null;
-        view_count: number;
-        author_id: string;
-        category_id: string | null;
-        created_at: string;
-        updated_at: string;
-      };
+      return post;
     }),
 
   // 更新文章（需要认证）
@@ -164,9 +182,9 @@ export const postRouter = createTRPCRouter({
         slug: z.string().min(1).optional(),
         content: z.string().optional(),
         excerpt: z.string().optional(),
-        cover_image: z.string().optional(),
-        category_id: z.string().optional(),
-        status: z.enum(["draft", "published", "archived"]).optional(),
+        coverImage: z.string().optional(),
+        categoryId: z.string().optional(),
+        status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -176,37 +194,31 @@ export const postRouter = createTRPCRouter({
 
       const { id, ...updateData } = input;
 
-      // 如果状态改为 published，设置发布时间
-      const dataToUpdate: Record<string, unknown> = { ...updateData };
-      if (updateData.status === "published") {
-        dataToUpdate.published_at = new Date().toISOString();
+      // 如果状态改为 PUBLISHED，设置发布时间
+      const dataToUpdate: {
+        title?: string;
+        slug?: string;
+        content?: string;
+        excerpt?: string;
+        coverImage?: string;
+        categoryId?: string;
+        status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+        publishedAt?: Date;
+      } = { ...updateData };
+
+      if (updateData.status === "PUBLISHED") {
+        dataToUpdate.publishedAt = new Date();
       }
 
-      const { data, error } = await supabase
-        .from("posts")
-        .update(dataToUpdate)
-        .eq("id", id)
-        .eq("author_id", ctx.session.user.id) // 只能更新自己的文章
-        .select()
-        .single();
+      const post = await ctx.db.post.update({
+        where: {
+          id,
+          authorId: ctx.session.user.id, // 只能更新自己的文章
+        },
+        data: dataToUpdate,
+      });
 
-      if (error) throw new Error(error.message);
-
-      return data as {
-        id: string;
-        title: string;
-        slug: string;
-        content: string | null;
-        excerpt: string | null;
-        cover_image: string | null;
-        status: string;
-        published_at: string | null;
-        view_count: number;
-        author_id: string;
-        category_id: string | null;
-        created_at: string;
-        updated_at: string;
-      };
+      return post;
     }),
 
   // 删除文章（需要认证）
@@ -217,13 +229,12 @@ export const postRouter = createTRPCRouter({
         throw new Error("未授权：需要登录才能删除文章");
       }
 
-      const { error } = await supabase
-        .from("posts")
-        .delete()
-        .eq("id", input.id)
-        .eq("author_id", ctx.session.user.id); // 只能删除自己的文章
-
-      if (error) throw new Error(error.message);
+      await ctx.db.post.delete({
+        where: {
+          id: input.id,
+          authorId: ctx.session.user.id, // 只能删除自己的文章
+        },
+      });
 
       return { success: true };
     }),
@@ -234,29 +245,24 @@ export const postRouter = createTRPCRouter({
       throw new Error("未授权：需要登录才能查看自己的文章");
     }
 
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*, categories(name, slug, color)")
-      .eq("author_id", ctx.session.user.id)
-      .order("created_at", { ascending: false });
+    const posts = await ctx.db.post.findMany({
+      where: {
+        authorId: ctx.session.user.id,
+      },
+      include: {
+        Category: {
+          select: {
+            name: true,
+            slug: true,
+            color: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-    if (error) throw new Error(error.message);
-
-    return (data ?? []) as Array<{
-      id: string;
-      title: string;
-      slug: string;
-      content: string | null;
-      excerpt: string | null;
-      cover_image: string | null;
-      status: string;
-      published_at: string | null;
-      view_count: number;
-      author_id: string;
-      category_id: string | null;
-      created_at: string;
-      updated_at: string;
-      categories: { name: string; slug: string; color: string } | null;
-    }>;
+    return posts;
   }),
 });

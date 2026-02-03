@@ -7,7 +7,9 @@ import { CategoryBadge } from '~/components/blog/CategoryBadge';
 import { MarkdownContent } from '~/components/blog/MarkdownContent';
 import { InteractionSidebar } from '~/components/interaction/InteractionSidebar';
 import { getPostBySlug, getPosts, incrementPostView } from '~/server/actions/posts';
-import { supabase } from '~/lib/supabase';
+import { getUserById } from '~/server/actions/users';
+import { getCategoryById } from '~/server/actions/categories';
+import { getPostTags } from '~/server/actions/tags';
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -27,10 +29,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
   return {
     title: `${post.title} - BlogT3`,
-    description: post.excerpt,
+    description: post.excerpt ?? undefined,
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description: post.excerpt ?? undefined,
       type: 'article',
       publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
       modifiedTime: new Date(post.updatedAt).toISOString(),
@@ -53,37 +55,16 @@ export default async function PostPage({ params }: PostPageProps) {
   void incrementPostView(post.id);
 
   // Get author info
-  const { data: author } = await supabase
-    .from('User')
-    .select('id, name, avatar, bio')
-    .eq('id', post.authorId)
-    .single();
+  const authorResult = await getUserById(post.authorId);
+  const author = authorResult.success ? authorResult.data : null;
 
   // Get category info
-  const { data: category } = await supabase
-    .from('Category')
-    .select('id, name, slug')
-    .eq('id', post.categoryId)
-    .single();
+  const categoryResult = await getCategoryById(post.categoryId);
+  const category = categoryResult.success ? categoryResult.data : null;
 
   // Get tags
-  type Tag = {
-    id: string;
-    name: string;
-    slug: string;
-  };
-
-  type PostTagWithTag = {
-    tagId: string;
-    Tag: Tag | null;
-  };
-
-  const { data: postTags } = await supabase
-    .from('PostTag')
-    .select('tagId, Tag(*)')
-    .eq('postId', post.id);
-
-  const tags = (postTags as PostTagWithTag[] | null)?.map((pt) => pt.Tag).filter((tag): tag is Tag => tag !== null) ?? [];
+  const tagsResult = await getPostTags(post.id);
+  const tags = tagsResult.success ? (tagsResult.data ?? []) : [];
 
   // Get prev/next posts
   const allPostsResult = await getPosts({
@@ -177,7 +158,7 @@ export default async function PostPage({ params }: PostPageProps) {
               {tags.map((tag) => (
                 <Link
                   key={tag.slug}
-                  href={`/blog?tags=${tag.id ?? tag.slug}`}
+                  href={`/blog?tags=${tag.id ?? tag.slug ?? ''}`}
                   className="btn-plain scale-animation rounded-lg px-3 py-1 text-sm"
                 >
                   #{tag.name}

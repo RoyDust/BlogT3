@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "~/lib/supabase";
+import { getCategories } from "~/server/actions/categories";
+import { getPostById, createPost, updatePost, getDefaultAuthorId } from "~/server/actions/posts";
 import dynamic from "next/dynamic";
 import ImageUpload from "~/components/admin/ImageUpload";
 
@@ -51,11 +52,10 @@ export default function PostEditorPage({
   // 加载分类
   useEffect(() => {
     async function loadCategories() {
-      const { data } = await supabase
-        .from("Category")
-        .select("*")
-        .order("name");
-      if (data) setCategories(data);
+      const result = await getCategories();
+      if (result.success && result.data) {
+        setCategories(result.data);
+      }
     }
     void loadCategories();
   }, []);
@@ -64,13 +64,10 @@ export default function PostEditorPage({
   useEffect(() => {
     if (postId) {
       async function loadPost() {
-        const { data } = await supabase
-          .from("Post")
-          .select("*")
-          .eq("id", postId)
-          .single();
+        const result = await getPostById(postId!);
 
-        if (data) {
+        if (result.success && result.data) {
+          const data = result.data;
           setFormData({
             title: data.title ?? "",
             slug: data.slug ?? "",
@@ -109,40 +106,46 @@ export default function PostEditorPage({
     setLoading(true);
 
     try {
-      // 获取或创建默认用户
-      let authorId = "default-author-id";
-
-      // 尝试获取第一个用户作为作者
-      const { data: users } = await supabase
-        .from("User")
-        .select("id")
-        .limit(1);
-
-      if (users && users.length > 0 && users[0]) {
-        authorId = users[0].id;
+      // 获取默认作者 ID
+      const authorResult = await getDefaultAuthorId();
+      if (!authorResult.success || !authorResult.data) {
+        alert("无法获取作者信息，请重试");
+        return;
       }
 
-      const postData = {
-        ...formData,
-        status,
-        authorId,
-        publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
-      };
-
-      console.log(postData);
+      const authorId = authorResult.data;
 
       if (postId) {
         // 更新文章
-        const { error } = await supabase
-          .from("Post")
-          .update(postData)
-          .eq("id", postId);
+        const result = await updatePost(postId, {
+          title: formData.title,
+          slug: formData.slug,
+          content: formData.content,
+          excerpt: formData.excerpt,
+          coverImage: formData.coverImage || undefined,
+          categoryId: formData.categoryId,
+          status: status as "DRAFT" | "PUBLISHED",
+        });
 
-        if (error) throw error;
+        if (!result.success) {
+          throw new Error(result.error);
+        }
       } else {
         // 创建新文章
-        const { error } = await supabase.from("Post").insert([postData]);
-        if (error) throw error;
+        const result = await createPost({
+          title: formData.title,
+          slug: formData.slug,
+          content: formData.content,
+          excerpt: formData.excerpt,
+          coverImage: formData.coverImage || undefined,
+          authorId,
+          categoryId: formData.categoryId,
+          status: status as "DRAFT" | "PUBLISHED",
+        });
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
       }
 
       router.push("/admin/posts");

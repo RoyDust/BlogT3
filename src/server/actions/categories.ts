@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '~/lib/supabase';
+import { db } from '~/server/db';
 
 /**
  * 分类相关操作
@@ -21,13 +21,13 @@ export interface Category {
  */
 export async function getCategories() {
   try {
-    const { data, error } = await supabase
-      .from('Category')
-      .select('*')
-      .order('name', { ascending: true });
+    const categories = await db.category.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+    });
 
-    if (error) throw error;
-    return { success: true, data: data ?? [] };
+    return { success: true, data: categories };
   } catch (error) {
     console.error('Error fetching categories:', error);
     return { success: false, error: 'Failed to fetch categories' };
@@ -39,14 +39,15 @@ export async function getCategories() {
  */
 export async function getCategoryById(id: string) {
   try {
-    const { data, error } = await supabase
-      .from('Category')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const category = await db.category.findUnique({
+      where: { id },
+    });
 
-    if (error) throw error;
-    return { success: true, data };
+    if (!category) {
+      return { success: false, error: 'Category not found' };
+    }
+
+    return { success: true, data: category };
   } catch (error) {
     console.error('Error fetching category:', error);
     return { success: false, error: 'Failed to fetch category' };
@@ -58,16 +59,94 @@ export async function getCategoryById(id: string) {
  */
 export async function getCategoryBySlug(slug: string) {
   try {
-    const { data, error } = await supabase
-      .from('Category')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+    const category = await db.category.findUnique({
+      where: { slug },
+    });
 
-    if (error) throw error;
-    return { success: true, data };
+    if (!category) {
+      return { success: false, error: 'Category not found' };
+    }
+
+    return { success: true, data: category };
   } catch (error) {
     console.error('Error fetching category:', error);
     return { success: false, error: 'Failed to fetch category' };
+  }
+}
+
+/**
+ * 删除分类
+ */
+export async function deleteCategory(id: string) {
+  try {
+    await db.category.delete({
+      where: { id },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    return { success: false, error: 'Failed to delete category' };
+  }
+}
+
+/**
+ * 获取多个分类（通过 ID 列表）
+ */
+export async function getCategoriesByIds(ids: string[]) {
+  try {
+    const categories = await db.category.findMany({
+      where: {
+        id: { in: ids },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+      },
+    });
+
+    return { success: true, data: categories };
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return { success: false, error: 'Failed to fetch categories' };
+  }
+}
+
+/**
+ * 获取所有分类及其文章数量
+ */
+export async function getCategoriesWithPostCount() {
+  try {
+    const categories = await db.category.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+      include: {
+        _count: {
+          select: {
+            Post: {
+              where: {
+                status: 'PUBLISHED',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const categoriesWithCount = categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      count: category._count.Post,
+    }));
+
+    return { success: true, data: categoriesWithCount };
+  } catch (error) {
+    console.error('Error fetching categories with count:', error);
+    return { success: false, error: 'Failed to fetch categories' };
   }
 }

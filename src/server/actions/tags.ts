@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '~/lib/supabase';
+import { db } from '~/server/db';
 
 /**
  * 标签相关操作
@@ -19,12 +19,12 @@ export interface Tag {
  */
 export async function getTags() {
   try {
-    const { data, error } = await supabase
-      .from('Tag')
-      .select('*')
-      .order('name', { ascending: true });
+    const data = await db.tag.findMany({
+      orderBy: {
+        name: 'asc'
+      }
+    });
 
-    if (error) throw error;
     return { success: true, data: data ?? [] };
   } catch (error) {
     console.error('Error fetching tags:', error);
@@ -37,13 +37,10 @@ export async function getTags() {
  */
 export async function getTagById(id: string) {
   try {
-    const { data, error } = await supabase
-      .from('Tag')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const data = await db.tag.findUnique({
+      where: { id }
+    });
 
-    if (error) throw error;
     return { success: true, data };
   } catch (error) {
     console.error('Error fetching tag:', error);
@@ -56,16 +53,50 @@ export async function getTagById(id: string) {
  */
 export async function getTagBySlug(slug: string) {
   try {
-    const { data, error } = await supabase
-      .from('Tag')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+    const data = await db.tag.findUnique({
+      where: { slug }
+    });
 
-    if (error) throw error;
     return { success: true, data };
   } catch (error) {
     console.error('Error fetching tag:', error);
     return { success: false, error: 'Failed to fetch tag' };
+  }
+}
+
+/**
+ * 删除标签
+ */
+export async function deleteTag(id: string) {
+  try {
+    await db.tag.delete({
+      where: { id },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting tag:', error);
+    return { success: false, error: 'Failed to delete tag' };
+  }
+}
+
+/**
+ * 获取文章的标签
+ */
+export async function getPostTags(postId: string) {
+  try {
+    const postTags = await db.postTag.findMany({
+      where: { postId },
+      include: {
+        Tag: true,
+      },
+    });
+
+    const tags = postTags.map((pt) => pt.Tag).filter((tag): tag is NonNullable<typeof tag> => tag !== null);
+
+    return { success: true, data: tags };
+  } catch (error) {
+    console.error('Error fetching post tags:', error);
+    return { success: false, error: 'Failed to fetch tags' };
   }
 }

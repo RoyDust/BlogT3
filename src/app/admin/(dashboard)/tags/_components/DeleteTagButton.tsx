@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { supabase } from "~/lib/supabase";
+import { deleteTag } from "~/server/actions/tags";
 
 export default function DeleteTagButton({
   tagId,
@@ -18,24 +18,20 @@ export default function DeleteTagButton({
   const handleDelete = async () => {
     setIsDeleting(true);
 
-    toast.promise(
-      (async () => {
-        const { error } = await supabase
-          .from("Tag")
-          .delete()
-          .eq("id", tagId);
+    try {
+      const result = await deleteTag(tagId);
 
-        if (error) throw error;
+      if (!result.success) {
+        toast.error(result.error || "删除失败，请重试");
+      } else {
+        toast.success("标签删除成功！");
         router.refresh();
-      })(),
-      {
-        loading: `正在删除标签 "${tagName}"...`,
-        success: "标签删除成功！",
-        error: "删除失败，请重试",
       }
-    ).finally(() => {
+    } catch (error) {
+      toast.error("删除失败，请重试");
+    } finally {
       setIsDeleting(false);
-    });
+    }
   };
 
   return (

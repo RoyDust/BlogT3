@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "~/lib/supabase";
+import { createCategory } from "../actions";
 
 export default function CategoryForm() {
   const router = useRouter();
@@ -36,9 +36,12 @@ export default function CategoryForm() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("Category").insert([formData]);
+      const result = await createCategory(formData);
 
-      if (error) throw error;
+      if (!result.success) {
+        alert(result.error);
+        return;
+      }
 
       // Reset form
       setFormData({
@@ -51,11 +54,7 @@ export default function CategoryForm() {
       router.refresh();
     } catch (error) {
       console.error("创建分类失败:", error);
-      if (error && typeof error === 'object' && 'code' in error && error.code === "23505") {
-        alert("分类名称或 Slug 已存在");
-      } else {
-        alert("创建失败，请重试");
-      }
+      alert("创建失败，请重试");
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, X, Filter } from 'lucide-react';
 import { PostCard } from '~/components/blog/PostCard';
 import { getPosts } from '~/server/actions/posts';
-import type { Post } from '~/server/actions/posts';
+import type { Post } from '../../../generated/prisma';
 
 interface Category {
   id: string;
@@ -33,7 +33,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   const [isPending, startTransition] = useTransition();
 
   const resolveCategoryId = useCallback(
-    (value: string | null) => {
+    (value: string | null | undefined) => {
       if (!value) return '';
       const match = categories.find((category) => category.id === value || category.slug === value);
       return match?.id ?? value;
@@ -42,7 +42,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   );
 
   const resolveTagIds = useCallback(
-    (value: string | null, legacyValue: string | null) => {
+    (value: string | null | undefined, legacyValue: string | null | undefined) => {
       const rawValue = value ?? legacyValue ?? '';
       if (!rawValue) return [];
       const candidates = rawValue.split(',').filter(Boolean);
@@ -55,12 +55,12 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   );
 
   // 搜索和筛选状态
-  const [query, setQuery] = useState(searchParams?.get('q') || '');
+  const [query, setQuery] = useState(searchParams?.get('q') ?? '');
   const [selectedCategory, setSelectedCategory] = useState(
-    resolveCategoryId(searchParams?.get('category'))
+    resolveCategoryId(searchParams?.get('category') ?? undefined)
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(
-    resolveTagIds(searchParams?.get('tags'), searchParams?.get('tag'))
+    resolveTagIds(searchParams?.get('tags') ?? undefined, searchParams?.get('tag') ?? undefined)
   );
   const [showFilters, setShowFilters] = useState(false);
 
@@ -78,8 +78,15 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
       });
 
       if (result.success) {
+        // Transform posts to include proper structure
+        const transformedPosts = (result.data ?? []).map((post: any) => ({
+          ...post,
+          author: post.User,
+          category: post.Category,
+          tags: post.PostTag?.map((pt: any) => pt.Tag) ?? [],
+        }));
         return {
-          posts: result.data ?? [],
+          posts: transformedPosts,
           count: result.count ?? 0,
         };
       }
@@ -95,8 +102,8 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   // 同步 URL 参数到组件状态（当用户从外部链接进入时）
   useEffect(() => {
     const urlQuery = searchParams?.get('q') ?? '';
-    const urlCategory = resolveCategoryId(searchParams?.get('category'));
-    const urlTags = resolveTagIds(searchParams?.get('tags'), searchParams?.get('tag'));
+    const urlCategory = resolveCategoryId(searchParams?.get('category') ?? undefined);
+    const urlTags = resolveTagIds(searchParams?.get('tags') ?? undefined, searchParams?.get('tag') ?? undefined);
 
     setQuery(urlQuery);
     setSelectedCategory(urlCategory);
@@ -108,7 +115,8 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
     // 检查当前状态是否与 URL 参数一致，避免不必要的更新
     const urlQuery = searchParams?.get('q') ?? '';
     const urlCategory = searchParams?.get('category') ?? '';
-    const urlTags = searchParams?.get('tags')?.split(',').filter(Boolean) ?? [];
+    const urlTagsString = searchParams?.get('tags') ?? '';
+    const urlTags = urlTagsString ? urlTagsString.split(',').filter(Boolean) : [];
 
     const stateMatchesUrl =
       query === urlQuery &&

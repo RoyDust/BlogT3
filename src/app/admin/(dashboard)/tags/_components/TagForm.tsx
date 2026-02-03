@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "~/lib/supabase";
+import { createTag } from "../actions";
 
 export default function TagForm() {
   const router = useRouter();
@@ -34,9 +34,12 @@ export default function TagForm() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("Tag").insert([formData]);
+      const result = await createTag(formData);
 
-      if (error) throw error;
+      if (!result.success) {
+        alert(result.error);
+        return;
+      }
 
       // Reset form
       setFormData({
@@ -47,11 +50,7 @@ export default function TagForm() {
       router.refresh();
     } catch (error) {
       console.error("创建标签失败:", error);
-      if (error && typeof error === 'object' && 'code' in error && error.code === "23505") {
-        alert("标签名称或 Slug 已存在");
-      } else {
-        alert("创建失败，请重试");
-      }
+      alert("创建失败，请重试");
     } finally {
       setLoading(false);
     }

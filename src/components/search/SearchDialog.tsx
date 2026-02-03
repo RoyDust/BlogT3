@@ -14,7 +14,7 @@ interface SearchResult {
   title: string;
   excerpt?: string;
   slug: string;
-  coverImage?: string | null;
+  coverImage?: string | null | undefined;
 }
 
 export function SearchDialog() {
@@ -49,7 +49,7 @@ export function SearchDialog() {
               id: post.id,
               type: 'post' as const,
               title: post.title,
-              excerpt: post.excerpt,
+              excerpt: post.excerpt ?? undefined,
               slug: post.slug,
               coverImage: post.coverImage,
             }))

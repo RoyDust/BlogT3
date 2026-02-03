@@ -1,11 +1,12 @@
 "use server";
 
-import { supabase } from "~/lib/supabase";
+import { db } from "~/server/db";
+import { Prisma } from "../../../generated/prisma";
 import { revalidatePath } from "next/cache";
 
 /**
  * 相册 CRUD 操作
- * 使用 Supabase 客户端进行数据库操作
+ * 使用 Prisma 客户端进行数据库操作
  */
 
 // 定义类型
@@ -104,48 +105,41 @@ export interface GetGalleriesOptions {
 export async function createGallery(input: CreateGalleryInput) {
   try {
     const publishedAt =
-      input.status === "PUBLISHED" ? new Date().toISOString() : null;
+      input.status === "PUBLISHED" ? new Date() : null;
 
     // 插入相册
-    const { data: gallery, error } = await supabase
-      .from("PhotoGallery")
-      .insert({
+    const gallery = await db.photoGallery.create({
+      data: {
         title: input.title,
         slug: input.slug,
-        description: input.description || null,
+        description: input.description ?? null,
         coverImage: input.coverImage,
         coverImageThumb: input.coverImageThumb,
         authorId: input.authorId,
         status: input.status ?? "DRAFT",
         featured: input.featured ?? false,
         location: input.location ?? null,
-        captureDate: input.captureDate?.toISOString() ?? null,
-        tags: input.tags ?? [],
+        captureDate: input.captureDate ?? null,
         imageCount: input.photos?.length ?? 0,
         publishedAt,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+        updatedAt: new Date(),
+      },
+    });
 
     // 如果有照片，插入照片
     if (input.photos && input.photos.length > 0) {
-      const photos = input.photos.map((photo) => ({
-        galleryId: gallery.id,
-        url: photo.url,
-        thumbnail: photo.thumbnail,
-        alt: photo.alt ?? null,
-        width: photo.width ?? null,
-        height: photo.height ?? null,
-        order: photo.order,
-        exifData: photo.exifData ?? null,
-      }));
-
-      const { error: photoError } = await supabase
-        .from("PhotoImage")
-        .insert(photos);
-      if (photoError) throw photoError;
+      await db.photoImage.createMany({
+        data: input.photos.map((photo) => ({
+          galleryId: gallery.id,
+          url: photo.url,
+          thumbnail: photo.thumbnail,
+          alt: photo.alt ?? null,
+          width: photo.width ?? null,
+          height: photo.height ?? null,
+          sortOrder: photo.order,
+          exifData: photo.exifData ?? Prisma.JsonNull,
+        })),
+      });
     }
 
     revalidatePath("/photography");
@@ -161,13 +155,14 @@ export async function createGallery(input: CreateGalleryInput) {
  */
 export async function getGalleryById(id: string) {
   try {
-    const { data: gallery, error } = await supabase
-      .from("PhotoGallery")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const gallery = await db.photoGallery.findUnique({
+      where: { id },
+    });
 
-    if (error) throw error;
+    if (!gallery) {
+      return { success: false, error: "Gallery not found" };
+    }
+
     return { success: true, data: gallery };
   } catch (error) {
     console.error("Error fetching gallery:", error);
@@ -180,13 +175,21 @@ export async function getGalleryById(id: string) {
  */
 export async function getGalleryBySlug(slug: string) {
   try {
-    const { data: gallery, error } = await supabase
-      .from("PhotoGallery")
-      .select("*")
-      .eq("slug", slug)
-      .single();
+    const gallery = await db.photoGallery.findUnique({
+      where: { slug },
+      include: {
+        GalleryTag: {
+          include: {
+            Tag: true,
+          },
+        },
+      },
+    });
 
-    if (error) throw error;
+    if (!gallery) {
+      return { success: false, error: "Gallery not found" };
+    }
+
     return { success: true, data: gallery };
   } catch (error) {
     console.error("Error fetching gallery:", error);
@@ -199,57 +202,61 @@ export async function getGalleryBySlug(slug: string) {
  */
 export async function getGalleries(options: GetGalleriesOptions = {}) {
   try {
-    let query = supabase.from("PhotoGallery").select("*", { count: "exact" });
+    // 构建 where 条件
+    const where: any = {};
 
-    // 应用筛选条件
     if (options.status) {
-      query = query.eq("status", options.status);
+      where.status = options.status;
     }
     if (options.authorId) {
-      query = query.eq("authorId", options.authorId);
+      where.authorId = options.authorId;
     }
     if (options.featured !== undefined) {
-      query = query.eq("featured", options.featured);
+      where.featured = options.featured;
     }
     if (options.tag) {
-      query = query.contains("tags", [options.tag]);
+      where.GalleryTag = {
+        some: {
+          Tag: {
+            slug: options.tag,
+          },
+        },
+      };
     }
 
     // 搜索关键词（标题、描述）
     if (options.query) {
-      query = query.or(`title.ilike.%${options.query}%,description.ilike.%${options.query}%`);
+      where.OR = [
+        { title: { contains: options.query, mode: "insensitive" } },
+        { description: { contains: options.query, mode: "insensitive" } },
+      ];
     }
 
     // 排序
     const orderBy = options.orderBy ?? "createdAt";
     const order = options.order ?? "desc";
-    query = query.order(orderBy, { ascending: order === "asc" });
 
-    // 分页
-    if (options.limit) {
-      query = query.limit(options.limit);
-    }
-    if (options.offset) {
-      query = query.range(
-        options.offset,
-        options.offset + (options.limit ?? 10) - 1,
-      );
-    }
-
-    const { data: galleries, error, count } = await query;
-
-    if (error) throw error;
+    // 执行查询
+    const [galleries, count] = await Promise.all([
+      db.photoGallery.findMany({
+        where,
+        orderBy: { [orderBy]: order },
+        skip: options.offset,
+        take: options.limit,
+      }),
+      db.photoGallery.count({ where }),
+    ]);
 
     // 为每个相册加载前几张图片
     if (galleries && galleries.length > 0) {
       const galleriesWithPhotos = await Promise.all(
         galleries.map(async (gallery) => {
-          const { data: photos } = await supabase
-            .from("PhotoImage")
-            .select("id, url, thumbnail, alt")
-            .eq("galleryId", gallery.id)
-            .order("sortOrder", { ascending: true })
-            .limit(4); // 只加载前4张图片用于预览
+          const photos = await db.photoImage.findMany({
+            where: { galleryId: gallery.id },
+            select: { id: true, url: true, thumbnail: true, alt: true },
+            orderBy: { sortOrder: "asc" },
+            take: 4, // 只加载前4张图片用于预览
+          });
 
           return {
             ...gallery,
@@ -273,30 +280,28 @@ export async function getGalleries(options: GetGalleriesOptions = {}) {
  */
 export async function updateGallery(id: string, input: UpdateGalleryInput) {
   try {
-    const updateData: any = { ...input };
+    const updateData: any = {
+      ...input,
+      updatedAt: new Date(),
+    };
 
     // 如果状态改为 PUBLISHED 且之前没有发布时间，设置发布时间
     if (input.status === "PUBLISHED") {
-      const { data: currentGallery } = await supabase
-        .from("PhotoGallery")
-        .select("publishedAt")
-        .eq("id", id)
-        .single();
+      const currentGallery = await db.photoGallery.findUnique({
+        where: { id },
+        select: { publishedAt: true },
+      });
 
       if (currentGallery && !currentGallery.publishedAt) {
-        updateData.publishedAt = new Date().toISOString();
+        updateData.publishedAt = new Date();
       }
     }
 
     // 更新相册
-    const { data: gallery, error } = await supabase
-      .from("PhotoGallery")
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
+    const gallery = await db.photoGallery.update({
+      where: { id },
+      data: updateData,
+    });
 
     revalidatePath("/photography");
     revalidatePath(`/photography/${gallery.slug}`);
@@ -313,27 +318,27 @@ export async function updateGallery(id: string, input: UpdateGalleryInput) {
 export async function deleteGallery(id: string) {
   try {
     // 获取相册信息
-    const { data: gallery } = await supabase
-      .from("PhotoGallery")
-      .select("slug")
-      .eq("id", id)
-      .single();
+    const gallery = await db.photoGallery.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
 
     if (!gallery) {
       return { success: false, error: "Gallery not found" };
     }
 
-    // 删除相关数据（应用层保证一致性）
-    await supabase.from("PhotoImage").delete().eq("galleryId", id);
-    await supabase
-      .from("Like")
-      .delete()
-      .eq("targetType", "GALLERY")
-      .eq("targetId", id);
+    // 删除相册（级联删除会自动删除相关的 PhotoImage 和 GalleryTag）
+    // 但需要手动删除 Like 记录
+    await db.like.deleteMany({
+      where: {
+        targetType: "GALLERY",
+        targetId: id,
+      },
+    });
 
-    // 删除相册
-    const { error } = await supabase.from("PhotoGallery").delete().eq("id", id);
-    if (error) throw error;
+    await db.photoGallery.delete({
+      where: { id },
+    });
 
     revalidatePath("/photography");
     return { success: true };
@@ -348,20 +353,16 @@ export async function deleteGallery(id: string) {
  */
 export async function incrementGalleryView(galleryId: string) {
   try {
-    const { data, error } = await supabase
-      .from("PhotoGallery")
-      .select("viewCount")
-      .eq("id", galleryId)
-      .single();
+    await db.photoGallery.update({
+      where: { id: galleryId },
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+        updatedAt: new Date(),
+      },
+    });
 
-    if (error) throw error;
-
-    const { error: updateError } = await supabase
-      .from("PhotoGallery")
-      .update({ viewCount: (data.viewCount ?? 0) + 1 })
-      .eq("id", galleryId);
-
-    if (updateError) throw updateError;
     return { success: true };
   } catch (error) {
     console.error("Error incrementing view:", error);
@@ -374,13 +375,11 @@ export async function incrementGalleryView(galleryId: string) {
  */
 export async function getGalleryPhotos(galleryId: string) {
   try {
-    const { data, error } = await supabase
-      .from("PhotoImage")
-      .select("*")
-      .eq("galleryId", galleryId)
-      .order("sortOrder", { ascending: true });
+    const data = await db.photoImage.findMany({
+      where: { galleryId },
+      orderBy: { sortOrder: "asc" },
+    });
 
-    if (error) throw error;
     return { success: true, data };
   } catch (error) {
     console.error("Error fetching photos:", error);
@@ -396,33 +395,30 @@ export async function addPhotosToGallery(
   photos: CreatePhotoInput[],
 ) {
   try {
-    const photoData = photos.map((photo) => ({
-      galleryId,
-      url: photo.url,
-      thumbnail: photo.thumbnail,
-      alt: photo.alt ?? null,
-      width: photo.width ?? null,
-      height: photo.height ?? null,
-      order: photo.order,
-      exifData: photo.exifData ?? null,
-    }));
-
-    const { error } = await supabase.from("PhotoImage").insert(photoData);
-    if (error) throw error;
+    // 插入照片
+    await db.photoImage.createMany({
+      data: photos.map((photo) => ({
+        galleryId,
+        url: photo.url,
+        thumbnail: photo.thumbnail,
+        alt: photo.alt ?? null,
+        width: photo.width ?? null,
+        height: photo.height ?? null,
+        sortOrder: photo.order,
+        exifData: photo.exifData ?? Prisma.JsonNull,
+      })),
+    });
 
     // 更新相册的照片数量
-    const { data: gallery } = await supabase
-      .from("PhotoGallery")
-      .select("imageCount")
-      .eq("id", galleryId)
-      .single();
-
-    if (gallery) {
-      await supabase
-        .from("PhotoGallery")
-        .update({ imageCount: gallery.imageCount + photos.length })
-        .eq("id", galleryId);
-    }
+    await db.photoGallery.update({
+      where: { id: galleryId },
+      data: {
+        imageCount: {
+          increment: photos.length,
+        },
+        updatedAt: new Date(),
+      },
+    });
 
     revalidatePath("/photography");
     return { success: true };
@@ -438,35 +434,36 @@ export async function addPhotosToGallery(
 export async function deletePhoto(photoId: string) {
   try {
     // 获取照片信息
-    const { data: photo } = await supabase
-      .from("PhotoImage")
-      .select("galleryId")
-      .eq("id", photoId)
-      .single();
+    const photo = await db.photoImage.findUnique({
+      where: { id: photoId },
+      select: { galleryId: true },
+    });
 
     if (!photo) {
       return { success: false, error: "Photo not found" };
     }
 
     // 删除照片
-    const { error } = await supabase
-      .from("PhotoImage")
-      .delete()
-      .eq("id", photoId);
-    if (error) throw error;
+    await db.photoImage.delete({
+      where: { id: photoId },
+    });
 
     // 更新相册的照片数量
-    const { data: gallery } = await supabase
-      .from("PhotoGallery")
-      .select("imageCount")
-      .eq("id", photo.galleryId)
-      .single();
+    const gallery = await db.photoGallery.findUnique({
+      where: { id: photo.galleryId },
+      select: { imageCount: true },
+    });
 
     if (gallery && gallery.imageCount > 0) {
-      await supabase
-        .from("PhotoGallery")
-        .update({ imageCount: gallery.imageCount - 1 })
-        .eq("id", photo.galleryId);
+      await db.photoGallery.update({
+        where: { id: photo.galleryId },
+        data: {
+          imageCount: {
+            decrement: 1,
+          },
+          updatedAt: new Date(),
+        },
+      });
     }
 
     revalidatePath("/photography");
@@ -482,12 +479,10 @@ export async function deletePhoto(photoId: string) {
  */
 export async function updatePhotoOrder(photoId: string, newOrder: number) {
   try {
-    const { error } = await supabase
-      .from("PhotoImage")
-      .update({ sortOrder: newOrder })
-      .eq("id", photoId);
-
-    if (error) throw error;
+    await db.photoImage.update({
+      where: { id: photoId },
+      data: { sortOrder: newOrder },
+    });
 
     revalidatePath("/photography");
     return { success: true };
@@ -504,17 +499,38 @@ export async function updatePhotosOrder(
   updates: { id: string; order: number }[],
 ) {
   try {
-    for (const update of updates) {
-      await supabase
-        .from("PhotoImage")
-        .update({ sortOrder: update.order })
-        .eq("id", update.id);
-    }
+    // 使用 Promise.all 并行更新所有照片顺序
+    await Promise.all(
+      updates.map((update) =>
+        db.photoImage.update({
+          where: { id: update.id },
+          data: { sortOrder: update.order },
+        }),
+      ),
+    );
 
     revalidatePath("/photography");
     return { success: true };
   } catch (error) {
     console.error("Error updating photos order:", error);
     return { success: false, error: "Failed to update photos order" };
+  }
+}
+
+/**
+ * 更新照片的 alt 文本
+ */
+export async function updatePhotoAlt(photoId: string, alt: string) {
+  try {
+    await db.photoImage.update({
+      where: { id: photoId },
+      data: { alt },
+    });
+
+    revalidatePath("/photography");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating photo alt:", error);
+    return { success: false, error: "Failed to update photo alt" };
   }
 }

@@ -1,5 +1,5 @@
 import { getPosts } from "~/server/actions/posts";
-import { supabase } from "~/lib/supabase";
+import { db } from "~/server/db";
 import Link from "next/link";
 import DeletePostButton from "./_components/DeletePostButton";
 
@@ -14,12 +14,18 @@ export default async function PostsManagePage() {
 
   // 获取所有分类信息
   const categoryIds = [...new Set(posts.map((p) => p.categoryId))];
-  const { data: categories } = await supabase
-    .from("Category")
-    .select("id, name, slug")
-    .in("id", categoryIds);
+  const categories = await db.category.findMany({
+    where: {
+      id: { in: categoryIds },
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  });
 
-  const categoryMap = new Map(categories?.map((c) => [c.id, c]) ?? []);
+  const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
   return (
     <div>

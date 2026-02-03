@@ -1,33 +1,12 @@
 'use server';
 
-import { supabase } from '~/lib/supabase';
+import { db } from '~/server/db';
 import { revalidatePath } from 'next/cache';
 
 /**
  * 博客文章 CRUD 操作
- * 使用 Supabase 客户端进行数据库操作
+ * 使用 Prisma 客户端进行数据库操作
  */
-
-// 定义类型
-export interface Post {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  coverImage: string | null;
-  authorId: string;
-  categoryId: string;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  featured: boolean;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  readingTime: number;
-  publishedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface CreatePostInput {
   slug: string;
@@ -82,12 +61,11 @@ function calculateReadingTime(content: string): number {
 export async function createPost(input: CreatePostInput) {
   try {
     const readingTime = calculateReadingTime(input.content);
-    const publishedAt = input.status === 'PUBLISHED' ? new Date().toISOString() : null;
+    const publishedAt = input.status === 'PUBLISHED' ? new Date() : null;
 
     // 插入文章
-    const { data: post, error } = await supabase
-      .from('Post')
-      .insert({
+    const post = await db.post.create({
+      data: {
         slug: input.slug,
         title: input.title,
         excerpt: input.excerpt,
@@ -98,26 +76,21 @@ export async function createPost(input: CreatePostInput) {
         status: input.status || 'DRAFT',
         featured: input.featured || false,
         readingTime,
+        wordCount: input.content.split(/\s+/).length,
         publishedAt,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+        updatedAt: new Date(),
+      },
+    });
 
     // 如果有标签，关联标签
     if (input.tagIds && input.tagIds.length > 0) {
-      const postTags = input.tagIds.map((tagId) => ({
-        postId: post.id,
-        tagId,
-      }));
-
-      const { error: tagError } = await supabase.from('PostTag').insert(postTags);
-      if (tagError) throw tagError;
+      await db.postTag.createMany({
+        data: input.tagIds.map((tagId) => ({
+          postId: post.id,
+          tagId,
+        })),
+      });
     }
-
-    // 更新作者的文章数
-    await supabase.rpc('increment_user_post_count', { user_id: input.authorId });
 
     revalidatePath('/blog');
     return { success: true, data: post };
@@ -132,13 +105,14 @@ export async function createPost(input: CreatePostInput) {
  */
 export async function getPostById(id: string) {
   try {
-    const { data: post, error } = await supabase
-      .from('Post')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const post = await db.post.findUnique({
+      where: { id },
+    });
 
-    if (error) throw error;
+    if (!post) {
+      return { success: false, error: 'Post not found' };
+    }
+
     return { success: true, data: post };
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -151,13 +125,14 @@ export async function getPostById(id: string) {
  */
 export async function getPostBySlug(slug: string) {
   try {
-    const { data: post, error } = await supabase
-      .from('Post')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+    const post = await db.post.findUnique({
+      where: { slug },
+    });
 
-    if (error) throw error;
+    if (!post) {
+      return { success: false, error: 'Post not found' };
+    }
+
     return { success: true, data: post };
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -170,68 +145,63 @@ export async function getPostBySlug(slug: string) {
  */
 export async function getPosts(options: GetPostsOptions = {}) {
   try {
-    let query = supabase.from('Post').select('*', { count: 'exact' });
+    // 构建查询条件
+    const where: any = {};
 
-    // 应用筛选条件
     if (options.status) {
-      query = query.eq('status', options.status);
+      where.status = options.status;
     }
     if (options.authorId) {
-      query = query.eq('authorId', options.authorId);
+      where.authorId = options.authorId;
     }
     if (options.categoryId) {
-      query = query.eq('categoryId', options.categoryId);
+      where.categoryId = options.categoryId;
     }
     if (options.featured !== undefined) {
-      query = query.eq('featured', options.featured);
+      where.featured = options.featured;
     }
 
-    // 搜索关键词（标题、摘要、内容）
+    // 搜索关键词
     if (options.query) {
-      query = query.or(`title.ilike.%${options.query}%,excerpt.ilike.%${options.query}%,content.ilike.%${options.query}%`);
+      where.OR = [
+        { title: { contains: options.query, mode: 'insensitive' } },
+        { excerpt: { contains: options.query, mode: 'insensitive' } },
+        { content: { contains: options.query, mode: 'insensitive' } },
+      ];
+    }
+
+    // 标签筛选
+    if (options.tagIds && options.tagIds.length > 0) {
+      where.PostTag = {
+        some: {
+          tagId: { in: options.tagIds },
+        },
+      };
     }
 
     // 排序
     const orderBy = options.orderBy || 'createdAt';
     const order = options.order || 'desc';
-    query = query.order(orderBy, { ascending: order === 'asc' });
 
-    // 分页
-    if (options.limit) {
-      query = query.limit(options.limit);
-    }
-    if (options.offset) {
-      query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
-    }
+    // 查询文章
+    const posts = await db.post.findMany({
+      where,
+      include: {
+        User: true,
+        Category: true,
+        PostTag: {
+          include: {
+            Tag: true,
+          },
+        },
+      },
+      orderBy: { [orderBy]: order },
+      skip: options.offset || 0,
+      take: options.limit || undefined,
+    });
 
-    let { data: posts, error, count } = await query;
-
-    if (error) throw error;
-
-    // 如果有标签筛选，需要额外过滤
-    if (options.tagIds && options.tagIds.length > 0 && posts) {
-      // 获取符合标签条件的文章 ID
-      const { data: postTags, error: tagError } = await supabase
-        .from('PostTag')
-        .select('postId')
-        .in('tagId', options.tagIds);
-
-      if (tagError) throw tagError;
-
-      // 统计每个文章匹配的标签数
-      const postIdCounts = new Map<string, number>();
-      postTags?.forEach((pt) => {
-        postIdCounts.set(pt.postId, (postIdCounts.get(pt.postId) || 0) + 1);
-      });
-
-      // 筛选出包含所有指定标签的文章
-      const matchingPostIds = Array.from(postIdCounts.entries())
-        .filter(([_, count]) => count === options.tagIds!.length)
-        .map(([postId]) => postId);
-
-      posts = posts.filter((post) => matchingPostIds.includes(post.id));
-      count = posts.length;
-    }
+    // 获取总数
+    const count = await db.post.count({ where });
 
     console.log(posts);
 
@@ -252,18 +222,18 @@ export async function updatePost(id: string, input: UpdatePostInput) {
     // 如果更新内容，重新计算阅读时间
     if (input.content) {
       updateData.readingTime = calculateReadingTime(input.content);
+      updateData.wordCount = input.content.split(/\s+/).length;
     }
 
     // 如果状态改为 PUBLISHED 且之前没有发布时间，设置发布时间
     if (input.status === 'PUBLISHED') {
-      const { data: currentPost } = await supabase
-        .from('Post')
-        .select('publishedAt')
-        .eq('id', id)
-        .single();
+      const currentPost = await db.post.findUnique({
+        where: { id },
+        select: { publishedAt: true },
+      });
 
       if (currentPost && !currentPost.publishedAt) {
-        updateData.publishedAt = new Date().toISOString();
+        updateData.publishedAt = new Date();
       }
     }
 
@@ -271,28 +241,30 @@ export async function updatePost(id: string, input: UpdatePostInput) {
     const tagIds = updateData.tagIds;
     delete updateData.tagIds;
 
-    // 更新文章
-    const { data: post, error } = await supabase
-      .from('Post')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    // 添加 updatedAt
+    updateData.updatedAt = new Date();
 
-    if (error) throw error;
+    // 更新文章
+    const post = await db.post.update({
+      where: { id },
+      data: updateData,
+    });
 
     // 如果提供了标签，更新标签关联
     if (tagIds !== undefined) {
       // 删除旧的标签关联
-      await supabase.from('PostTag').delete().eq('postId', id);
+      await db.postTag.deleteMany({
+        where: { postId: id },
+      });
 
       // 添加新的标签关联
       if (tagIds.length > 0) {
-        const postTags = tagIds.map((tagId: string) => ({
-          postId: id,
-          tagId,
-        }));
-        await supabase.from('PostTag').insert(postTags);
+        await db.postTag.createMany({
+          data: tagIds.map((tagId: string) => ({
+            postId: id,
+            tagId,
+          })),
+        });
       }
     }
 
@@ -310,29 +282,20 @@ export async function updatePost(id: string, input: UpdatePostInput) {
  */
 export async function deletePost(id: string) {
   try {
-    // 获取文章信息（用于更新作者统计）
-    const { data: post } = await supabase
-      .from('Post')
-      .select('authorId, slug')
-      .eq('id', id)
-      .single();
+    // 获取文章信息
+    const post = await db.post.findUnique({
+      where: { id },
+      select: { authorId: true, slug: true },
+    });
 
     if (!post) {
       return { success: false, error: 'Post not found' };
     }
 
-    // 删除相关数据（应用层保证一致性）
-    await supabase.from('PostTag').delete().eq('postId', id);
-    await supabase.from('Comment').delete().eq('postId', id);
-    await supabase.from('Like').delete().eq('targetType', 'POST').eq('targetId', id);
-    await supabase.from('PostView').delete().eq('postId', id);
-
-    // 删除文章
-    const { error } = await supabase.from('Post').delete().eq('id', id);
-    if (error) throw error;
-
-    // 更新作者的文章数
-    await supabase.rpc('decrement_user_post_count', { user_id: post.authorId });
+    // 删除文章（级联删除会自动处理关联数据）
+    await db.post.delete({
+      where: { id },
+    });
 
     revalidatePath('/blog');
     return { success: true };
@@ -349,20 +312,24 @@ export async function incrementPostView(postId: string, userId?: string) {
   try {
     // 记录浏览
     if (userId) {
-      await supabase.from('PostView').insert({
-        postId,
-        userId,
+      await db.postView.create({
+        data: {
+          postId,
+          viewerId: userId,
+        },
       });
     }
 
     // 增加浏览量计数
-    const { error } = await supabase.rpc('increment', {
-      table_name: 'Post',
-      row_id: postId,
-      column_name: 'viewCount',
+    await db.post.update({
+      where: { id: postId },
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+      },
     });
 
-    if (error) throw error;
     return { success: true };
   } catch (error) {
     console.error('Error incrementing view:', error);
@@ -375,13 +342,14 @@ export async function incrementPostView(postId: string, userId?: string) {
  */
 export async function getPostTags(postId: string) {
   try {
-    const { data, error } = await supabase
-      .from('PostTag')
-      .select('tagId, Tag(*)')
-      .eq('postId', postId);
+    const postTags = await db.postTag.findMany({
+      where: { postId },
+      include: {
+        Tag: true,
+      },
+    });
 
-    if (error) throw error;
-    return { success: true, data: data.map((pt) => pt.Tag) };
+    return { success: true, data: postTags.map((pt) => pt.Tag) };
   } catch (error) {
     console.error('Error fetching post tags:', error);
     return { success: false, error: 'Failed to fetch tags' };
@@ -393,17 +361,39 @@ export async function getPostTags(postId: string) {
  */
 export async function getPostComments(postId: string) {
   try {
-    const { data, error } = await supabase
-      .from('Comment')
-      .select('*')
-      .eq('postId', postId)
-      .eq('status', 'APPROVED')
-      .order('createdAt', { ascending: false });
+    const comments = await db.comment.findMany({
+      where: {
+        postId,
+        status: 'APPROVED',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-    if (error) throw error;
-    return { success: true, data };
+    return { success: true, data: comments };
   } catch (error) {
     console.error('Error fetching comments:', error);
     return { success: false, error: 'Failed to fetch comments' };
+  }
+}
+
+/**
+ * 获取默认作者 ID
+ */
+export async function getDefaultAuthorId() {
+  try {
+    const user = await db.user.findFirst({
+      select: { id: true },
+    });
+
+    if (!user) {
+      return { success: false, error: 'No user found' };
+    }
+
+    return { success: true, data: user.id };
+  } catch (error) {
+    console.error('Error fetching default author:', error);
+    return { success: false, error: 'Failed to fetch default author' };
   }
 }

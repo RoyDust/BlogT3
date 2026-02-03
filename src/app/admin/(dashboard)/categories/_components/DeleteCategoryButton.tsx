@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { supabase } from "~/lib/supabase";
+import { deleteCategory } from "~/server/actions/categories";
 
 export default function DeleteCategoryButton({
   categoryId,
@@ -18,24 +18,20 @@ export default function DeleteCategoryButton({
   const handleDelete = async () => {
     setIsDeleting(true);
 
-    toast.promise(
-      (async () => {
-        const { error } = await supabase
-          .from("Category")
-          .delete()
-          .eq("id", categoryId);
+    try {
+      const result = await deleteCategory(categoryId);
 
-        if (error) throw error;
+      if (!result.success) {
+        toast.error(result.error || "删除失败，请重试");
+      } else {
+        toast.success("分类删除成功！");
         router.refresh();
-      })(),
-      {
-        loading: `正在删除分类 "${categoryName}"...`,
-        success: "分类删除成功！",
-        error: "删除失败，请重试",
       }
-    ).finally(() => {
+    } catch (error) {
+      toast.error("删除失败，请重试");
+    } finally {
       setIsDeleting(false);
-    });
+    }
   };
 
   return (

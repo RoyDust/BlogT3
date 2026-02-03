@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "~/lib/supabase";
 import ImageUpload from "~/components/admin/ImageUpload";
 import { Trash2, GripVertical } from "lucide-react";
+import {
+  getGalleryPhotos,
+  addPhotosToGallery,
+  deletePhoto,
+  updatePhotoAlt,
+  type CreatePhotoInput,
+} from "~/server/actions/galleries";
 
 interface PhotoImage {
   id: string;
@@ -14,7 +20,7 @@ interface PhotoImage {
   width: number | null;
   height: number | null;
   sortOrder: number;
-  createdAt: string;
+  createdAt: Date;
 }
 
 interface GalleryImageManagerProps {
@@ -40,20 +46,20 @@ export default function GalleryImageManager({
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from("PhotoImage")
-        .select("*")
-        .eq("galleryId", galleryId)
-        .order("sortOrder", { ascending: true });
+      const result = await getGalleryPhotos(galleryId);
 
-      if (error) throw error;
-      setImages(data || []);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      setImages(result.data || []);
 
       if (onImageCountChange) {
-        onImageCountChange(data?.length || 0);
+        onImageCountChange(result.data?.length || 0);
       }
     } catch (error) {
       console.error("加载图片失败:", error);
+      toast.error("加载图片失败");
     } finally {
       setLoading(false);
     }
@@ -69,28 +75,20 @@ export default function GalleryImageManager({
           ? Math.max(...images.map((img) => img.sortOrder))
           : -1;
 
-      // 插入新图片
-      const { data, error } = await supabase
-        .from("PhotoImage")
-        .insert([
-          {
-            galleryId,
-            url,
-            thumbnail: url, // 暂时使用原图作为缩略图
-            alt: null,
-            sortOrder: maxSortOrder + 1,
-          },
-        ])
-        .select()
-        .single();
+      // 创建新图片数据
+      const newPhoto: CreatePhotoInput = {
+        url,
+        thumbnail: url, // 暂时使用原图作为缩略图
+        alt: undefined,
+        order: maxSortOrder + 1,
+      };
 
-      if (error) throw error;
+      // 添加图片到相册
+      const result = await addPhotosToGallery(galleryId, [newPhoto]);
 
-      // 更新相册的图片数量
-      await supabase
-        .from("PhotoGallery")
-        .update({ imageCount: images.length + 1 })
-        .eq("id", galleryId);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       // 重新加载图片列表
       await loadImages();
@@ -107,18 +105,11 @@ export default function GalleryImageManager({
   const handleDeleteImage = async (imageId: string) => {
     toast.promise(
       (async () => {
-        const { error } = await supabase
-          .from("PhotoImage")
-          .delete()
-          .eq("id", imageId);
+        const result = await deletePhoto(imageId);
 
-        if (error) throw error;
-
-        // 更新相册的图片数量
-        await supabase
-          .from("PhotoGallery")
-          .update({ imageCount: images.length - 1 })
-          .eq("id", galleryId);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
 
         // 重新加载图片列表
         await loadImages();
@@ -133,12 +124,11 @@ export default function GalleryImageManager({
 
   const handleUpdateAlt = async (imageId: string, alt: string) => {
     try {
-      const { error } = await supabase
-        .from("PhotoImage")
-        .update({ alt })
-        .eq("id", imageId);
+      const result = await updatePhotoAlt(imageId, alt);
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       // 更新本地状态
       setImages((prev) =>

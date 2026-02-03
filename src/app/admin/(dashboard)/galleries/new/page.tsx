@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "~/lib/supabase";
+import { getGalleryById, createGallery, updateGallery } from "~/server/actions/galleries";
+import { getDefaultAuthorId } from "~/server/actions/posts";
 import ImageUpload from "~/components/admin/ImageUpload";
 import GalleryImageManager from "~/components/admin/GalleryImageManager";
 import { Trash2, GripVertical } from "lucide-react";
@@ -48,13 +49,10 @@ export default function GalleryEditorPage({
   useEffect(() => {
     if (galleryId) {
       async function loadGallery() {
-        const { data } = await supabase
-          .from("PhotoGallery")
-          .select("*")
-          .eq("id", galleryId)
-          .single();
+        const result = await getGalleryById(galleryId!);
 
-        if (data) {
+        if (result.success && result.data) {
+          const data = result.data;
           setFormData({
             title: data.title ?? "",
             slug: data.slug ?? "",
@@ -62,7 +60,7 @@ export default function GalleryEditorPage({
             coverImage: data.coverImage ?? "",
             location: data.location ?? "",
             captureDate: data.captureDate
-              ? new Date(data.captureDate).toISOString().split("T")[0]!
+              ? (new Date(data.captureDate).toISOString().split("T")[0] ?? "")
               : "",
             status: data.status ?? "DRAFT",
           });
@@ -128,59 +126,55 @@ export default function GalleryEditorPage({
     setLoading(true);
 
     try {
-      // 获取第一个用户作为作者
-      let authorId = "default-author-id";
-      const { data: users } = await supabase.from("User").select("id").limit(1);
-
-      if (users && users.length > 0 && users[0]) {
-        authorId = users[0].id;
+      // 获取默认作者 ID
+      const authorResult = await getDefaultAuthorId();
+      if (!authorResult.success || !authorResult.data) {
+        alert("无法获取作者信息，请重试");
+        return;
       }
 
-      const galleryData = {
-        ...formData,
-        status,
-        authorId,
-        publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
-        captureDate: formData.captureDate || null,
-        imageCount: galleryId ? undefined : pendingImages.length, // 新建时设置图片数量
-      };
-
-      let finalGalleryId = galleryId;
+      const authorId = authorResult.data;
 
       if (galleryId) {
         // 更新相册
-        const { error } = await supabase
-          .from("PhotoGallery")
-          .update(galleryData)
-          .eq("id", galleryId);
+        const result = await updateGallery(galleryId, {
+          title: formData.title,
+          slug: formData.slug,
+          description: formData.description || undefined,
+          coverImage: formData.coverImage || undefined,
+          coverImageThumb: formData.coverImage || undefined,
+          location: formData.location || undefined,
+          captureDate: formData.captureDate ? new Date(formData.captureDate) : undefined,
+          status: status as "DRAFT" | "PUBLISHED",
+        });
 
-        if (error) throw error;
+        if (!result.success) {
+          throw new Error(result.error);
+        }
       } else {
         // 创建新相册
-        const { data, error } = await supabase
-          .from("PhotoGallery")
-          .insert([galleryData])
-          .select()
-          .single();
+        const photos = pendingImages.map((img) => ({
+          url: img.url,
+          thumbnail: img.url,
+          alt: img.alt || undefined,
+          order: img.sortOrder,
+        }));
 
-        if (error) throw error;
-        finalGalleryId = data.id;
+        const result = await createGallery({
+          title: formData.title,
+          slug: formData.slug,
+          description: formData.description || undefined,
+          coverImage: formData.coverImage,
+          coverImageThumb: formData.coverImage,
+          authorId,
+          status: status as "DRAFT" | "PUBLISHED",
+          location: formData.location || undefined,
+          captureDate: formData.captureDate ? new Date(formData.captureDate) : undefined,
+          photos: photos.length > 0 ? photos : undefined,
+        });
 
-        // 如果有待上传的图片，批量插入
-        if (pendingImages.length > 0) {
-          const imageInserts = pendingImages.map((img) => ({
-            galleryId: finalGalleryId,
-            url: img.url,
-            thumbnail: img.url,
-            alt: img.alt || null,
-            sortOrder: img.sortOrder,
-          }));
-
-          const { error: imagesError } = await supabase
-            .from("PhotoImage")
-            .insert(imageInserts);
-
-          if (imagesError) throw imagesError;
+        if (!result.success) {
+          throw new Error(result.error);
         }
       }
 

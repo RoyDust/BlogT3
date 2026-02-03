@@ -1,55 +1,54 @@
-import { supabase } from "~/lib/supabase";
+import { db } from "~/server/db";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
   // 获取统计数据
-  const { count: totalPosts } = await supabase
-    .from("Post")
-    .select("*", { count: "exact", head: true });
+  const totalPosts = await db.post.count();
 
-  const { count: publishedPosts } = await supabase
-    .from("Post")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "PUBLISHED");
+  const publishedPosts = await db.post.count({
+    where: { status: "PUBLISHED" },
+  });
 
-  const { count: draftPosts } = await supabase
-    .from("Post")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "DRAFT");
+  const draftPosts = await db.post.count({
+    where: { status: "DRAFT" },
+  });
 
-  const { count: totalCategories } = await supabase
-    .from("Category")
-    .select("*", { count: "exact", head: true });
+  const totalCategories = await db.category.count();
 
   // 获取最近的文章
-  const { data: recentPosts } = await supabase
-    .from("Post")
-    .select("id, title, status, createdAt")
-    .order("createdAt", { ascending: false })
-    .limit(5);
+  const recentPosts = await db.post.findMany({
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
 
   const stats = [
     {
       name: "总文章数",
-      value: totalPosts ?? 0,
+      value: totalPosts,
       icon: "📝",
       color: "blue",
     },
     {
       name: "已发布",
-      value: publishedPosts ?? 0,
+      value: publishedPosts,
       icon: "✅",
       color: "green",
     },
     {
       name: "草稿",
-      value: draftPosts ?? 0,
+      value: draftPosts,
       icon: "📄",
       color: "yellow",
     },
     {
       name: "分类数",
-      value: totalCategories ?? 0,
+      value: totalCategories,
       icon: "📁",
       color: "purple",
     },

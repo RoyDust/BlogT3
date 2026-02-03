@@ -1,12 +1,10 @@
-import { supabase } from "~/lib/supabase";
+import { getCategories } from "~/server/actions/categories";
 import CategoryForm from "./_components/CategoryForm";
 import DeleteCategoryButton from "./_components/DeleteCategoryButton";
 
 export default async function CategoriesPage() {
-  const { data: categories } = await supabase
-    .from("Category")
-    .select("*")
-    .order("name");
+  const result = await getCategories();
+  const categories = result.success ? result.data : [];
 
   return (
     <div>

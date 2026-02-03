@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "~/lib/supabase";
+import { db } from "~/server/db";
 import bcrypt from "bcryptjs";
+import { Prisma } from "../../../../../generated/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -27,36 +28,39 @@ export async function POST(request: Request) {
     const passwordHash = await bcrypt.hash(password, 10);
 
     // 创建用户
-    const { data, error } = await supabase.from("User").insert([
-      {
+    const user = await db.user.create({
+      data: {
         email,
         name: name || email.split("@")[0],
         password: passwordHash,
         role: "ADMIN",
         status: "ACTIVE",
+        updatedAt: new Date(),
       },
-    ]).select().single();
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
 
-    if (error) {
-      if (error.code === "23505") {
+    return NextResponse.json(
+      { success: true, user },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("注册异常:", error);
+
+    // 处理唯一约束冲突（邮箱已存在）
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
         return NextResponse.json(
           { error: "该邮箱已被注册" },
           { status: 400 }
         );
       }
-      console.error("注册错误:", error);
-      return NextResponse.json(
-        { error: "注册失败，请重试" },
-        { status: 500 }
-      );
     }
 
-    return NextResponse.json(
-      { success: true, user: { id: data.id, email: data.email, name: data.name } },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("注册异常:", error);
     return NextResponse.json(
       { error: "服务器错误，请重试" },
       { status: 500 }

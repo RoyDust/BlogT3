@@ -1,12 +1,10 @@
-import { supabase } from "~/lib/supabase";
+import { getTags } from "~/server/actions/tags";
 import TagForm from "./_components/TagForm";
 import DeleteTagButton from "./_components/DeleteTagButton";
 
 export default async function TagsPage() {
-  const { data: tags } = await supabase
-    .from("Tag")
-    .select("*")
-    .order("name");
+  const result = await getTags();
+  const tags = result.success ? result.data : [];
 
   return (
     <div>

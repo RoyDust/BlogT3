@@ -1,11 +1,12 @@
-import { supabase } from "~/lib/supabase";
+import { getGalleries } from "~/server/actions/galleries";
 import Link from "next/link";
 
 export default async function GalleriesPage() {
-  const { data: galleries } = await supabase
-    .from("PhotoGallery")
-    .select("*")
-    .order("createdAt", { ascending: false });
+  const result = await getGalleries({
+    orderBy: "createdAt",
+    order: "desc",
+  });
+  const galleries = result.success ? result.data : [];
 
   return (
     <div>

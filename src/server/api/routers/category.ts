@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { supabase } from "~/lib/supabase";
 
 import {
   createTRPCRouter,
@@ -8,69 +7,73 @@ import {
 
 export const categoryRouter = createTRPCRouter({
   // 获取所有分类
-  getAll: publicProcedure.query(async () => {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("name", { ascending: true });
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    const categories = await ctx.db.category.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    });
 
-    if (error) throw new Error(error.message);
-
-    return (data ?? []) as Array<{
-      id: string;
-      name: string;
-      slug: string;
-      description: string | null;
-      color: string;
-      created_at: string;
-      updated_at: string;
-    }>;
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      color: category.color,
+      created_at: category.createdAt.toISOString(),
+      updated_at: category.updatedAt.toISOString(),
+    }));
   }),
 
   // 根据 slug 获取分类
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
-    .query(async ({ input }) => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("slug", input.slug)
-        .single();
+    .query(async ({ ctx, input }) => {
+      const category = await ctx.db.category.findUnique({
+        where: {
+          slug: input.slug,
+        },
+      });
 
-      if (error) throw new Error(error.message);
+      if (!category) {
+        throw new Error("Category not found");
+      }
 
-      return data as {
-        id: string;
-        name: string;
-        slug: string;
-        description: string | null;
-        color: string;
-        created_at: string;
-        updated_at: string;
+      return {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        color: category.color,
+        created_at: category.createdAt.toISOString(),
+        updated_at: category.updatedAt.toISOString(),
       };
     }),
 
   // 获取分类及其文章数量
-  getAllWithCount: publicProcedure.query(async () => {
-    const { data, error } = await supabase
-      .from("categories")
-      .select(`
-        *,
-        posts:posts(count)
-      `)
-      .order("name", { ascending: true });
+  getAllWithCount: publicProcedure.query(async ({ ctx }) => {
+    const categories = await ctx.db.category.findMany({
+      orderBy: {
+        name: "asc",
+      },
+      include: {
+        _count: {
+          select: {
+            Post: true,
+          },
+        },
+      },
+    });
 
-    if (error) throw new Error(error.message);
-
-    return (data ?? []) as Array<{
-      id: string;
-      name: string;
-      slug: string;
-      description: string | null;
-      color: string;
-      created_at: string;
-      updated_at: string;
-      posts: { count: number }[];
-    }>;
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      color: category.color,
+      created_at: category.createdAt.toISOString(),
+      updated_at: category.updatedAt.toISOString(),
+      posts: [{ count: category._count.Post }],
+    }));
   }),
 });

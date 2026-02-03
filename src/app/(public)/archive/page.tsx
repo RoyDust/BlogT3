@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Calendar } from "lucide-react";
 import { CategoryBadge } from "~/components/blog/CategoryBadge";
 import { getPosts } from "~/server/actions/posts";
-import { supabase } from "~/lib/supabase";
+import { getCategoriesByIds } from "~/server/actions/categories";
 
 export const metadata: Metadata = {
   title: "文章归档 - BlogT3",
@@ -30,13 +30,11 @@ export default async function ArchivePage() {
   // Get categories for all posts
   const categoryIds = [...new Set(posts.map((p) => p.categoryId))] as string[];
 
-  const { data: categories } = await supabase
-    .from("Category")
-    .select("id, name, slug, color")
-    .in("id", categoryIds);
+  const categoriesResult = await getCategoriesByIds(categoryIds);
+  const categories = categoriesResult.success ? (categoriesResult.data ?? []) : [];
 
   const categoryMap = new Map<string, Category>(
-    categories?.map((c) => [c.id, c as Category]) ?? [],
+    categories.map((c) => [c.id, c as Category]),
   );
 
   type PostWithCategory = (typeof posts)[number] & {

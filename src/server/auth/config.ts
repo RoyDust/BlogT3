@@ -1,6 +1,6 @@
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { supabase } from "~/lib/supabase";
+import { db } from "~/server/db";
 import bcrypt from "bcryptjs";
 
 /**
@@ -46,14 +46,20 @@ export const authConfig = {
         const password = credentials.password as string;
 
         // 从 User 表查询用户
-        const { data: user, error } = await supabase
-          .from("User")
-          .select("*")
-          .eq("email", email)
-          .eq("status", "ACTIVE")
-          .single();
+        const user = await db.user.findUnique({
+          where: {
+            email,
+            status: "ACTIVE",
+          },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            password: true,
+          },
+        });
 
-        if (error || !user?.password) {
+        if (!user?.password) {
           return null;
         }
 

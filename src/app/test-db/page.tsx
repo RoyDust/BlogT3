@@ -50,22 +50,10 @@ async function GalleriesSection() {
               <p className="text-sm text-muted-foreground">{gallery.description}</p>
             )}
             <div className="mt-2 flex gap-4 text-sm">
-              <span>📷 {gallery.photoCount} photos</span>
+              <span>📷 {gallery.imageCount} photos</span>
               <span>👁️ {gallery.viewCount} views</span>
               <span>❤️ {gallery.likeCount} likes</span>
             </div>
-            {gallery.tags && gallery.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {gallery.tags.map((tag: string, idx: number) => (
-                  <span
-                    key={idx}
-                    className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
             <div className="mt-2 text-xs text-muted-foreground">
               Slug: {gallery.slug} | ID: {gallery.id}
             </div>
