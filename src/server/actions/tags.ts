@@ -1,6 +1,7 @@
 'use server';
 
 import { db } from '~/server/db';
+import { requireAdmin } from './auth-guard';
 
 /**
  * 标签相关操作
@@ -69,6 +70,11 @@ export async function getTagBySlug(slug: string) {
  */
 export async function deleteTag(id: string) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     await db.tag.delete({
       where: { id },
     });
@@ -88,6 +94,11 @@ export async function updateTag(
   input: { name: string; slug: string }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const existing = await db.tag.findFirst({
       where: { slug: input.slug, id: { not: id } },
     });

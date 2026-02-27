@@ -13,6 +13,13 @@ export default auth((req) => {
     if (!req.auth) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
+
+    // 检查用户角色，只有 ADMIN 和 MODERATOR 可以访问后台
+    // 无 role 或角色不符的用户跳转到登录页重新认证
+    const role = (req.auth as any).user?.role;
+    if (!role || (role !== "ADMIN" && role !== "MODERATOR")) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
   }
 
   // 如果已登录访问登录页或注册页，重定向到后台首页

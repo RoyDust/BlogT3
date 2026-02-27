@@ -13,6 +13,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "~/server/db";
+import { auth } from "~/server/auth";
 
 /**
  * 1. CONTEXT
@@ -56,7 +57,8 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({});
+  const session = await auth();
+  return createInnerTRPCContext({ session });
 };
 
 /**
@@ -137,17 +139,23 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 /**
  * Protected (authenticated) procedure
  *
- * 注意：当前项目未配置身份验证，此 procedure 暂时禁用
- * 如需使用，请先配置 next-auth 或其他身份验证方案
+ * 验证用户已登录，未登录则抛出 UNAUTHORIZED 错误
  *
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
-  .use(({ next }) => {
-    // 暂时禁用身份验证检查
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "身份验证未配置，请使用 publicProcedure"
+  .use(({ ctx, next }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "未登录，请先登录",
+      });
+    }
+
+    return next({
+      ctx: {
+        session: ctx.session,
+      },
     });
   });

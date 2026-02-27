@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         email,
         name: name || email.split("@")[0],
         password: passwordHash,
-        role: "ADMIN",
+        role: "USER",
         status: "ACTIVE",
         updatedAt: new Date(),
       },

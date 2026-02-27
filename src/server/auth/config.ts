@@ -13,15 +13,13 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      role: "USER" | "ADMIN" | "MODERATOR";
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    role?: "USER" | "ADMIN" | "MODERATOR";
+  }
 }
 
 /**
@@ -45,7 +43,6 @@ export const authConfig = {
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        // 从 User 表查询用户
         const user = await db.user.findUnique({
           where: {
             email,
@@ -56,6 +53,7 @@ export const authConfig = {
             email: true,
             name: true,
             password: true,
+            role: true,
           },
         });
 
@@ -63,7 +61,6 @@ export const authConfig = {
           return null;
         }
 
-        // 验证密码
         const isValidPassword = await bcrypt.compare(
           password,
           user.password as string
@@ -77,6 +74,7 @@ export const authConfig = {
           id: user.id,
           email: user.email,
           name: user.name ?? user.email.split("@")[0],
+          role: user.role,
         };
       },
     }),
@@ -88,12 +86,14 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role ?? "USER";
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
+        session.user.role = (token.role as "USER" | "ADMIN" | "MODERATOR") ?? "USER";
       }
       return session;
     },

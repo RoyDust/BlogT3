@@ -3,6 +3,7 @@
 import { db } from "~/server/db";
 import { Prisma } from "../../../generated/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "./auth-guard";
 
 /**
  * 相册 CRUD 操作
@@ -104,6 +105,11 @@ export interface GetGalleriesOptions {
  */
 export async function createGallery(input: CreateGalleryInput) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const publishedAt =
       input.status === "PUBLISHED" ? new Date() : null;
 
@@ -280,6 +286,11 @@ export async function getGalleries(options: GetGalleriesOptions = {}) {
  */
 export async function updateGallery(id: string, input: UpdateGalleryInput) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const updateData: any = {
       ...input,
       updatedAt: new Date(),
@@ -317,7 +328,11 @@ export async function updateGallery(id: string, input: UpdateGalleryInput) {
  */
 export async function deleteGallery(id: string) {
   try {
-    // 获取相册信息
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const gallery = await db.photoGallery.findUnique({
       where: { id },
       select: { slug: true },
@@ -395,7 +410,11 @@ export async function addPhotosToGallery(
   photos: CreatePhotoInput[],
 ) {
   try {
-    // 插入照片
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     await db.photoImage.createMany({
       data: photos.map((photo) => ({
         galleryId,
@@ -433,7 +452,11 @@ export async function addPhotosToGallery(
  */
 export async function deletePhoto(photoId: string) {
   try {
-    // 获取照片信息
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const photo = await db.photoImage.findUnique({
       where: { id: photoId },
       select: { galleryId: true },
@@ -479,6 +502,11 @@ export async function deletePhoto(photoId: string) {
  */
 export async function updatePhotoOrder(photoId: string, newOrder: number) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     await db.photoImage.update({
       where: { id: photoId },
       data: { sortOrder: newOrder },
@@ -499,7 +527,11 @@ export async function updatePhotosOrder(
   updates: { id: string; order: number }[],
 ) {
   try {
-    // 使用 Promise.all 并行更新所有照片顺序
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     await Promise.all(
       updates.map((update) =>
         db.photoImage.update({
@@ -522,6 +554,11 @@ export async function updatePhotosOrder(
  */
 export async function updatePhotoAlt(photoId: string, alt: string) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     await db.photoImage.update({
       where: { id: photoId },
       data: { alt },

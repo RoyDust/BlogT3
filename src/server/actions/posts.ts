@@ -2,6 +2,7 @@
 
 import { db } from '~/server/db';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from './auth-guard';
 
 /**
  * 博客文章 CRUD 操作
@@ -60,10 +61,14 @@ function calculateReadingTime(content: string): number {
  */
 export async function createPost(input: CreatePostInput) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const readingTime = calculateReadingTime(input.content);
     const publishedAt = input.status === 'PUBLISHED' ? new Date() : null;
 
-    // 插入文章
     const post = await db.post.create({
       data: {
         slug: input.slug,
@@ -203,8 +208,6 @@ export async function getPosts(options: GetPostsOptions = {}) {
     // 获取总数
     const count = await db.post.count({ where });
 
-    console.log(posts);
-
     return { success: true, data: posts, count };
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -217,6 +220,11 @@ export async function getPosts(options: GetPostsOptions = {}) {
  */
 export async function updatePost(id: string, input: UpdatePostInput) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const updateData: any = { ...input };
 
     // 如果更新内容，重新计算阅读时间
@@ -282,7 +290,11 @@ export async function updatePost(id: string, input: UpdatePostInput) {
  */
 export async function deletePost(id: string) {
   try {
-    // 获取文章信息
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const post = await db.post.findUnique({
       where: { id },
       select: { authorId: true, slug: true },
@@ -383,6 +395,11 @@ export async function getPostComments(postId: string) {
  */
 export async function batchDeletePosts(ids: string[]) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     if (ids.length === 0) return { success: false, error: '未选择文章' };
     if (ids.length > 100) return { success: false, error: '单次最多删除 100 篇文章' };
 
@@ -406,6 +423,11 @@ export async function batchUpdatePostStatus(
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     if (ids.length === 0) return { success: false, error: '未选择文章' };
     if (ids.length > 100) return { success: false, error: '单次最多操作 100 篇文章' };
 
@@ -428,19 +450,16 @@ export async function batchUpdatePostStatus(
 }
 
 /**
- * 获取默认作者 ID
+ * 获取当前登录用户的 ID 作为作者
  */
 export async function getDefaultAuthorId() {
   try {
-    const user = await db.user.findFirst({
-      select: { id: true },
-    });
-
-    if (!user) {
-      return { success: false, error: 'No user found' };
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
     }
 
-    return { success: true, data: user.id };
+    return { success: true, data: authResult.userId };
   } catch (error) {
     console.error('Error fetching default author:', error);
     return { success: false, error: 'Failed to fetch default author' };

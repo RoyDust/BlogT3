@@ -1,6 +1,7 @@
 'use server';
 
 import { db } from '~/server/db';
+import { requireAdmin } from './auth-guard';
 
 /**
  * 分类相关操作
@@ -79,6 +80,11 @@ export async function getCategoryBySlug(slug: string) {
  */
 export async function deleteCategory(id: string) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     await db.category.delete({
       where: { id },
     });
@@ -98,6 +104,11 @@ export async function updateCategory(
   input: { name: string; slug: string; description?: string; color: string }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     // 检查 slug 唯一性（排除当前分类）
     const existing = await db.category.findFirst({
       where: { slug: input.slug, id: { not: id } },

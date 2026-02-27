@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToQiniu } from "~/lib/qiniu";
 import { nanoid } from "nanoid";
+import { auth } from "~/server/auth";
 
 // 检查七牛云配置
 function checkQiniuConfig() {
@@ -30,7 +31,7 @@ export async function OPTIONS() {
     {},
     {
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
@@ -40,6 +41,15 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
+    // 验证用户身份
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "未登录，请先登录" },
+        { status: 401 }
+      );
+    }
+
     // 检查七牛云配置
     const configCheck = checkQiniuConfig();
     if (!configCheck.valid) {
@@ -126,6 +136,15 @@ export async function POST(request: NextRequest) {
 // 获取上传凭证（用于客户端直传）
 export async function GET() {
   try {
+    // 验证用户身份
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "未登录，请先登录" },
+        { status: 401 }
+      );
+    }
+
     // 检查七牛云配置
     const configCheck = checkQiniuConfig();
     if (!configCheck.valid) {

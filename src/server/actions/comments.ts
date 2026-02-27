@@ -2,6 +2,7 @@
 
 import { db } from '~/server/db';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin, requireAuth } from './auth-guard';
 
 /**
  * 评论功能
@@ -46,7 +47,11 @@ export interface GetCommentsOptions {
  */
 export async function createComment(input: CreateCommentInput) {
   try {
-    // 插入评论
+    const authResult = await requireAuth();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const comment = await db.comment.create({
       data: {
         postId: input.postId,
@@ -199,6 +204,11 @@ export async function getPostCommentsTree(postId: string) {
  */
 export async function updateComment(id: string, input: UpdateCommentInput) {
   try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const comment = await db.comment.update({
       where: { id },
       data: input,
@@ -217,7 +227,11 @@ export async function updateComment(id: string, input: UpdateCommentInput) {
  */
 export async function deleteComment(id: string) {
   try {
-    // 获取评论信息
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
     const comment = await db.comment.findUnique({
       where: { id },
       select: { postId: true, parentId: true },
