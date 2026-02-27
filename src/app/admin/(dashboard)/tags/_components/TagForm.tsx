@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createTag } from "../actions";
 import { updateTag } from "~/server/actions/tags";
+import { generateSlug } from "~/lib/slug";
 
 interface TagFormProps {
   initialData?: {
@@ -23,15 +24,6 @@ export default function TagForm({ initialData }: TagFormProps) {
     name: initialData?.name ?? "",
     slug: initialData?.slug ?? "",
   });
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
 
   const handleNameChange = (name: string) => {
     setFormData((prev) => ({

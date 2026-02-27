@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createCategory } from "../actions";
 import { updateCategory } from "~/server/actions/categories";
+import { generateSlug } from "~/lib/slug";
 
 interface CategoryFormProps {
   initialData?: {
@@ -27,15 +28,6 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
     description: initialData?.description ?? "",
     color: initialData?.color ?? "#3B82F6",
   });
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
 
   const handleNameChange = (name: string) => {
     setFormData((prev) => ({
