@@ -166,7 +166,7 @@ export default function AboutPage() {
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <div className="text-75 leading-relaxed space-y-4">
               <p>
-                BlogT3 是一个基于 Next.js 15 和 Supabase 构建的现代化博客平台，采用 RealBlog (Fuwari) 的设计系统。
+                BlogT3 是一个基于 Next.js 15 和 Prisma 构建的现代化博客平台，采用 RealBlog (Fuwari) 的设计系统。
               </p>
               <p>
                 本站的设计理念是提供简洁、优雅、高性能的阅读体验，同时支持完整的主题定制功能。
@@ -192,10 +192,10 @@ export default function AboutPage() {
             <div className="p-4 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]">
               <h3 className="font-bold text-90 mb-2 flex items-center gap-2">
                 <span className="text-[var(--primary)]">🗄️</span>
-                Supabase
+                Prisma
               </h3>
               <p className="text-sm text-75">
-                PostgreSQL 数据库和身份认证解决方案
+                类型安全的 ORM，PostgreSQL 数据库，NextAuth 身份认证
               </p>
             </div>
 

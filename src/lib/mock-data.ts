@@ -96,10 +96,10 @@ export const mockPosts: Post[] = [
   },
   {
     id: '3',
-    slug: 'supabase-authentication-guide',
-    title: 'Supabase 身份认证完整实现指南',
-    excerpt: 'Supabase 提供了强大的身份认证功能，包括邮箱登录、OAuth、魔法链接等多种方式。本文将详细介绍如何在 Next.js 项目中集成 Supabase 认证。',
-    content: '# Supabase 身份认证指南\n\nSupabase 是一个开源的 Firebase 替代方案...',
+    slug: 'nextauth-authentication-guide',
+    title: 'NextAuth 身份认证完整实现指南',
+    excerpt: 'NextAuth.js 提供了强大的身份认证功能，包括邮箱登录、OAuth、JWT 等多种方式。本文将详细介绍如何在 Next.js 项目中集成 NextAuth 认证。',
+    content: '# NextAuth 身份认证指南\n\nNextAuth.js 是一个为 Next.js 设计的开源认证方案...',
     coverImage: null,
     publishedAt: '2025-01-10T16:45:00Z',
     category: {
@@ -108,7 +108,7 @@ export const mockPosts: Post[] = [
       color: '#10b981',
     },
     tags: [
-      { name: 'Supabase', slug: 'supabase' },
+      { name: 'NextAuth', slug: 'nextauth' },
       { name: '身份认证', slug: 'authentication' },
       { name: 'PostgreSQL', slug: 'postgresql' },
     ],
@@ -215,7 +215,7 @@ export const mockTags = [
   'TypeScript',
   'Tailwind',
   'CSS',
-  'Supabase',
+  'Prisma',
   'PostgreSQL',
   'Figma',
   'UI 设计',

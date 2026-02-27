@@ -64,12 +64,12 @@ export function Footer() {
               </a>
               {" · "}
               <a
-                href="https://supabase.com"
+                href="https://www.prisma.io"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[var(--primary)] hover:underline"
               >
-                Supabase
+                Prisma
               </a>
               {" · "}
               <a

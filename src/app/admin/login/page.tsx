@@ -141,7 +141,7 @@ export default function LoginPage() {
         {/* Info Box */}
         <div className="mt-4 rounded-lg bg-blue-50 p-4 text-center text-sm text-slate-600">
           <p>
-            需要在 Supabase 中创建用户账号才能登录
+            需要注册管理员账号才能登录后台
           </p>
         </div>
       </div>

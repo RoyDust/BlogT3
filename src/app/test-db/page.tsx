@@ -69,8 +69,8 @@ export default function TestPage() {
     <div className="container mx-auto py-12">
       <h1 className="mb-8 text-4xl font-bold">Database Test Page</h1>
       <p className="mb-8 text-muted-foreground">
-        This page tests the Supabase CRUD operations. Make sure you have executed the SQL scripts
-        (init.sql and seed.sql) in your Supabase database.
+        This page tests the Prisma database operations. Make sure you have run the Prisma migrations
+        and seed scripts.
       </p>
 
       <div className="space-y-12">
@@ -89,28 +89,23 @@ export default function TestPage() {
         </h2>
         <ol className="list-inside list-decimal space-y-2 text-sm">
           <li>
-            Open your Supabase project SQL Editor:{' '}
+            Run Prisma migrations:{' '}
             <code className="rounded bg-muted px-2 py-1">
-              https://supabase.com/dashboard/project/YOUR_PROJECT/sql
+              npx prisma migrate dev
             </code>
           </li>
           <li>
-            Execute <code className="rounded bg-muted px-2 py-1">prisma/init.sql</code> to create
-            tables and schema
-          </li>
-          <li>
-            Execute <code className="rounded bg-muted px-2 py-1">prisma/seed.sql</code> to insert
+            Execute <code className="rounded bg-muted px-2 py-1">npx prisma db seed</code> to insert
             mock data
           </li>
           <li>
             Make sure your <code className="rounded bg-muted px-2 py-1">.env</code> file has the
-            correct Supabase credentials:
+            correct database connection string:
             <pre className="mt-2 rounded bg-muted p-3 text-xs">
-              {`NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key`}
+              {`DATABASE_URL=postgresql://user:password@host:5432/dbname`}
             </pre>
           </li>
-          <li>Refresh this page to see the data from your Supabase database</li>
+          <li>Refresh this page to see the data from your database</li>
         </ol>
       </div>
 

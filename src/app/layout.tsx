@@ -15,7 +15,7 @@ import { getThemeInitScript } from "~/lib/theme-utils";
 
 export const metadata: Metadata = {
   title: "BlogT3 - 现代化博客平台",
-  description: "基于 Next.js 15 和 Supabase 构建的类型安全博客系统",
+  description: "基于 Next.js 15 和 Prisma 构建的类型安全博客系统",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

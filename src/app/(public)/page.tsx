@@ -8,7 +8,7 @@ import { getCategoriesByIds, getCategoriesWithPostCount } from "~/server/actions
 export const metadata: Metadata = {
   title: "BlogT3 - 现代化博客平台",
   description:
-    "基于 Next.js 15 和 Supabase 构建的现代化博客平台，采用 RealBlog (Fuwari) 设计系统，支持动态主题和 OKLCH 色彩空间",
+    "基于 Next.js 15 和 Prisma 构建的现代化博客平台，采用 RealBlog (Fuwari) 设计系统，支持动态主题和 OKLCH 色彩空间",
 };
 
 export default async function HomePage() {
@@ -51,7 +51,7 @@ export default async function HomePage() {
             欢迎来到 BlogT3
           </h1>
           <p className="text-75 mx-auto max-w-2xl text-lg leading-relaxed md:text-xl">
-            基于 Next.js 15 和 Supabase 构建的现代化博客平台
+            基于 Next.js 15 和 Prisma 构建的现代化博客平台
             <br />
             采用 RealBlog (Fuwari) 设计系统
           </p>
@@ -170,10 +170,10 @@ export default async function HomePage() {
             <div className="space-y-2">
               <h3 className="text-90 flex items-center gap-2 font-bold">
                 <span className="text-[var(--primary)]">🗄️</span>
-                Supabase
+                Prisma
               </h3>
               <p className="text-75 text-sm">
-                PostgreSQL 数据库，实时功能，身份认证一体化解决方案
+                类型安全的 ORM，PostgreSQL 数据库，NextAuth 身份认证
               </p>
             </div>
 
