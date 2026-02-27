@@ -182,21 +182,21 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
       <div className="card-base p-4 onload-animation">
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-50" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索文章标题、摘要或内容..."
-              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-lg border border-[var(--line-color)] bg-[var(--card-bg)] py-2 pl-10 pr-4 text-90 outline-none transition focus:border-[var(--primary)]"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 ${
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
               showFilters || hasActiveFilters
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+                ? 'bg-primary text-white'
+                : 'btn-regular'
             }`}
           >
             <Filter className="h-5 w-5" />
@@ -205,7 +205,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+              className="btn-regular flex items-center gap-2 rounded-lg px-4 py-2"
             >
               <X className="h-5 w-5" />
               清除
@@ -215,16 +215,16 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
 
         {/* 筛选面板 */}
         {showFilters && (
-          <div className="mt-4 space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+          <div className="mt-4 space-y-4 border-t border-[var(--line-color)] pt-4">
             {/* 分类筛选 */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-2 block text-sm font-medium text-75">
                 分类
               </label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-lg border border-[var(--line-color)] bg-[var(--card-bg)] px-3 py-2 text-90 outline-none transition focus:border-[var(--primary)]"
               >
                 <option value="">全部分类</option>
                 {categories.map((category) => (
@@ -237,7 +237,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
 
             {/* 标签筛选 */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-2 block text-sm font-medium text-75">
                 标签（可多选）
               </label>
               <div className="flex flex-wrap gap-2">
@@ -245,10 +245,10 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
                   <button
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
-                    className={`rounded-full px-3 py-1 text-sm ${
+                    className={`rounded-full px-3 py-1 text-sm transition ${
                       selectedTags.includes(tag.id)
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+                        ? 'bg-primary text-white'
+                        : 'bg-[var(--btn-regular-bg)] text-[var(--btn-content)] hover:bg-[var(--btn-regular-bg-hover)]'
                     }`}
                   >
                     {tag.name}
@@ -285,7 +285,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-4 text-blue-500 hover:underline"
+                className="mt-4 text-primary hover:underline"
               >
                 清除筛选条件
               </button>
@@ -301,7 +301,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm disabled:opacity-40 hover:bg-[var(--btn-plain-bg-hover)] transition"
             >
               <ChevronLeft className="h-4 w-4" />
               上一页
@@ -316,15 +316,15 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
               }, [])
               .map((item, idx) =>
                 item === 'ellipsis' ? (
-                  <span key={`e-${idx}`} className="px-2 text-gray-400">...</span>
+                  <span key={`e-${idx}`} className="px-2 text-50">...</span>
                 ) : (
                   <button
                     key={item}
                     onClick={() => setPage(item)}
-                    className={`min-w-[36px] rounded-lg px-3 py-2 text-sm ${
+                    className={`min-w-[36px] rounded-lg px-3 py-2 text-sm transition ${
                       page === item
-                        ? 'bg-blue-500 text-white'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-primary text-white'
+                        : 'hover:bg-[var(--btn-plain-bg-hover)]'
                     }`}
                   >
                     {item}
@@ -335,7 +335,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm disabled:opacity-40 hover:bg-[var(--btn-plain-bg-hover)] transition"
             >
               下一页
               <ChevronRight className="h-4 w-4" />

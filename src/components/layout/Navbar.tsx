@@ -45,7 +45,7 @@ export function Navbar() {
       {/* Top spacer for animation */}
       <div className="absolute -top-8 right-0 left-0 h-8 bg-[var(--card-bg)] transition" />
 
-      <div className="card-base mx-auto flex h-[4.5rem] max-w-[var(--page-width)] items-center justify-between !overflow-visible !rounded-t-none px-4">
+      <div className="card-base mx-auto flex h-[4.5rem] max-w-[var(--page-width)] items-center justify-between !overflow-visible !rounded-t-none px-4 backdrop-blur-lg !bg-[var(--card-bg)]/80">
         {/* Logo */}
         <Link
           href="/"
@@ -105,20 +105,24 @@ export function Navbar() {
         </div>
 
         {/* Mobile Menu Panel */}
-        {showMobileMenu && (
-          <div className="card-base float-panel absolute top-[5.25rem] right-4 left-4 p-2 md:hidden">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="btn-plain scale-animation flex h-11 w-full items-center justify-start rounded-lg px-4 font-bold"
-                onClick={() => setShowMobileMenu(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
-        )}
+        <div
+          className={`card-base float-panel absolute top-[5.25rem] right-4 left-4 p-2 md:hidden transition-all duration-200 origin-top ${
+            showMobileMenu
+              ? "scale-y-100 opacity-100"
+              : "scale-y-95 opacity-0 pointer-events-none"
+          }`}
+        >
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="btn-plain scale-animation flex h-11 w-full items-center justify-start rounded-lg px-4 font-bold"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
 
         {/* Hue Picker Panel */}
         <HuePicker isOpen={showHuePicker} />

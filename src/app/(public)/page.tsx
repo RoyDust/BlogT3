@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, Archive, User, Palette, Zap, Database, Code2 } from "lucide-react";
 import { PostCard } from "~/components/blog/PostCard";
 import { getPosts } from "~/server/actions/posts";
 import { getCategoriesByIds, getCategoriesWithPostCount } from "~/server/actions/categories";
@@ -46,15 +46,21 @@ export default async function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <section className="card-base onload-animation p-8 text-center md:p-12">
-          <h1 className="text-90 mb-4 text-4xl font-bold md:text-5xl">
-            欢迎来到 BlogT3
-          </h1>
-          <p className="text-75 mx-auto max-w-2xl text-lg leading-relaxed md:text-xl">
-            基于 Next.js 15 和 Prisma 构建的现代化博客平台
-            <br />
-            采用 RealBlog (Fuwari) 设计系统
-          </p>
+      <section className="card-base onload-animation relative overflow-hidden p-8 text-center md:p-12">
+          {/* 装饰性背景渐变 */}
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-(--primary)/5 via-transparent to-(--primary)/3" />
+          <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-(--primary)/5 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-36 w-36 rounded-full bg-(--primary)/5 blur-3xl" />
+          <div className="relative">
+            <h1 className="text-90 mb-4 text-4xl font-bold md:text-5xl">
+              欢迎来到 BlogT3
+            </h1>
+            <p className="text-75 mx-auto max-w-2xl text-lg leading-relaxed md:text-xl">
+              基于 Next.js 15 和 Prisma 构建的现代化博客平台
+              <br />
+              采用 RealBlog (Fuwari) 设计系统
+            </p>
+          </div>
         </section>
 
         {/* Recent Posts */}
@@ -111,30 +117,33 @@ export default async function HomePage() {
         >
           <Link
             href="/blog"
-            className="card-base group p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
+            className="card-base group cursor-pointer p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
           >
-            <h3 className="text-90 mb-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
-              📝 博客文章
+            <h3 className="text-90 mb-2 flex items-center gap-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
+              <FileText className="h-5 w-5 text-[var(--primary)]" />
+              博客文章
             </h3>
             <p className="text-75 text-sm">查看所有技术文章和教程</p>
           </Link>
 
           <Link
             href="/archive"
-            className="card-base group p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
+            className="card-base group cursor-pointer p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
           >
-            <h3 className="text-90 mb-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
-              📚 归档
+            <h3 className="text-90 mb-2 flex items-center gap-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
+              <Archive className="h-5 w-5 text-[var(--primary)]" />
+              归档
             </h3>
             <p className="text-75 text-sm">按时间线浏览所有内容</p>
           </Link>
 
           <Link
             href="/about"
-            className="card-base group p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
+            className="card-base group cursor-pointer p-6 transition hover:bg-[var(--btn-card-bg-hover)]"
           >
-            <h3 className="text-90 mb-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
-              👤 关于
+            <h3 className="text-90 mb-2 flex items-center gap-2 text-xl font-bold transition group-hover:text-[var(--primary)]">
+              <User className="h-5 w-5 text-[var(--primary)]" />
+              关于
             </h3>
             <p className="text-75 text-sm">了解更多关于作者的信息</p>
           </Link>
@@ -149,7 +158,7 @@ export default async function HomePage() {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
               <h3 className="text-90 flex items-center gap-2 font-bold">
-                <span className="text-[var(--primary)]">🎨</span>
+                <Palette className="h-5 w-5 text-primary" />
                 动态主题系统
               </h3>
               <p className="text-75 text-sm">
@@ -159,7 +168,7 @@ export default async function HomePage() {
 
             <div className="space-y-2">
               <h3 className="text-90 flex items-center gap-2 font-bold">
-                <span className="text-[var(--primary)]">⚡</span>
+                <Zap className="h-5 w-5 text-primary" />
                 Next.js 15
               </h3>
               <p className="text-75 text-sm">
@@ -169,7 +178,7 @@ export default async function HomePage() {
 
             <div className="space-y-2">
               <h3 className="text-90 flex items-center gap-2 font-bold">
-                <span className="text-[var(--primary)]">🗄️</span>
+                <Database className="h-5 w-5 text-primary" />
                 Prisma
               </h3>
               <p className="text-75 text-sm">
@@ -179,7 +188,7 @@ export default async function HomePage() {
 
             <div className="space-y-2">
               <h3 className="text-90 flex items-center gap-2 font-bold">
-                <span className="text-[var(--primary)]">🎯</span>
+                <Code2 className="h-5 w-5 text-primary" />
                 TypeScript
               </h3>
               <p className="text-75 text-sm">
