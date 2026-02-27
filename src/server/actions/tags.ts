@@ -122,6 +122,37 @@ export async function updateTag(
 }
 
 /**
+ * 创建标签
+ */
+export async function createTag(input: { name: string; slug: string }) {
+  try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
+    const existing = await db.tag.findFirst({
+      where: { slug: input.slug },
+    });
+    if (existing) {
+      return { success: false, error: '该 Slug 已被使用' };
+    }
+
+    const tag = await db.tag.create({
+      data: {
+        name: input.name,
+        slug: input.slug,
+      },
+    });
+
+    return { success: true, data: tag };
+  } catch (error) {
+    console.error('Error creating tag:', error);
+    return { success: false, error: 'Failed to create tag' };
+  }
+}
+
+/**
  * 获取文章的标签
  */
 export async function getPostTags(postId: string) {

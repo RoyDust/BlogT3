@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PostCard } from '~/components/blog/PostCard';
 import { getPosts } from '~/server/actions/posts';
 import type { Post } from '../../../generated/prisma';
+
+const PAGE_SIZE = 10;
 
 interface Category {
   id: string;
@@ -63,10 +65,14 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
     resolveTagIds(searchParams?.get('tags') ?? undefined, searchParams?.get('tag') ?? undefined)
   );
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(() => {
+    const p = parseInt(searchParams?.get('page') ?? '1', 10);
+    return p > 0 ? p : 1;
+  });
 
   // 使用 React Query 获取数据
   const { data, isLoading } = useQuery({
-    queryKey: ['posts', query, selectedCategory, selectedTags],
+    queryKey: ['posts', query, selectedCategory, selectedTags, page],
     queryFn: async () => {
       const result = await getPosts({
         status: 'PUBLISHED',
@@ -75,6 +81,8 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
         tagIds: selectedTags.length > 0 ? selectedTags : undefined,
         orderBy: 'publishedAt',
         order: 'desc',
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
       });
 
       if (result.success) {
@@ -104,24 +112,27 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
     const urlQuery = searchParams?.get('q') ?? '';
     const urlCategory = resolveCategoryId(searchParams?.get('category') ?? undefined);
     const urlTags = resolveTagIds(searchParams?.get('tags') ?? undefined, searchParams?.get('tag') ?? undefined);
+    const urlPage = parseInt(searchParams?.get('page') ?? '1', 10);
 
     setQuery(urlQuery);
     setSelectedCategory(urlCategory);
     setSelectedTags(urlTags);
+    setPage(urlPage > 0 ? urlPage : 1);
   }, [searchParams, resolveCategoryId, resolveTagIds]);
 
   // 更新 URL（当用户在组件内操作时）
   useEffect(() => {
-    // 检查当前状态是否与 URL 参数一致，避免不必要的更新
     const urlQuery = searchParams?.get('q') ?? '';
     const urlCategory = searchParams?.get('category') ?? '';
     const urlTagsString = searchParams?.get('tags') ?? '';
     const urlTags = urlTagsString ? urlTagsString.split(',').filter(Boolean) : [];
+    const urlPage = parseInt(searchParams?.get('page') ?? '1', 10);
 
     const stateMatchesUrl =
       query === urlQuery &&
       selectedCategory === urlCategory &&
-      JSON.stringify(selectedTags) === JSON.stringify(urlTags);
+      JSON.stringify(selectedTags) === JSON.stringify(urlTags) &&
+      page === urlPage;
 
     if (stateMatchesUrl) return;
 
@@ -129,6 +140,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
     if (query) params.set('q', query);
     if (selectedCategory) params.set('category', selectedCategory);
     if (selectedTags.length > 0) params.set('tags', selectedTags.join(','));
+    if (page > 1) params.set('page', String(page));
 
     const newURL = params.toString() ? `?${params.toString()}` : '/blog';
 
@@ -139,13 +151,19 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [query, selectedCategory, selectedTags, searchParams, router]);
+  }, [query, selectedCategory, selectedTags, page, searchParams, router]);
+
+  // 筛选条件变化时重置到第一页
+  useEffect(() => {
+    setPage(1);
+  }, [query, selectedCategory, selectedTags]);
 
   // 清除所有筛选
   const clearFilters = useCallback(() => {
     setQuery('');
     setSelectedCategory('');
     setSelectedTags([]);
+    setPage(1);
   }, []);
 
   // 切换标签选择
@@ -156,6 +174,7 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
   }, []);
 
   const hasActiveFilters = query || selectedCategory || selectedTags.length > 0;
+  const totalPages = Math.ceil(count / PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -274,6 +293,56 @@ export function BlogSearch({ initialPosts, initialCount, categories, tags }: Blo
           </div>
         )}
       </div>
+
+      {/* 分页 */}
+      {totalPages > 1 && (
+        <div className="card-base p-4 onload-animation">
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              上一页
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+              .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                item === 'ellipsis' ? (
+                  <span key={`e-${idx}`} className="px-2 text-gray-400">...</span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => setPage(item)}
+                    className={`min-w-[36px] rounded-lg px-3 py-2 text-sm ${
+                      page === item
+                        ? 'bg-blue-500 text-white'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              下一页
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

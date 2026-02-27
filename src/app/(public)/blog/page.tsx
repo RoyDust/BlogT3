@@ -20,6 +20,7 @@ interface BlogPageProps {
     category?: string;
     tag?: string;
     tags?: string;
+    page?: string;
   }>;
 }
 
@@ -48,13 +49,18 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   };
 
   const tagParam = params.tags ?? params.tag;
+  const currentPage = Math.max(1, parseInt(params.page ?? '1', 10) || 1);
+  const pageSize = 10;
+
   const result = await getPosts({
     status: 'PUBLISHED',
     query: params.q,
     categoryId: resolveCategoryId(params.category),
     tagIds: resolveTagIds(tagParam),
     orderBy: 'publishedAt',
-    order: 'desc'
+    order: 'desc',
+    limit: pageSize,
+    offset: (currentPage - 1) * pageSize,
   });
 
   const posts = result.success ? result.data ?? [] : [];

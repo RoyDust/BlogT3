@@ -136,6 +136,42 @@ export async function updateCategory(
 }
 
 /**
+ * 创建分类
+ */
+export async function createCategory(
+  input: { name: string; slug: string; description?: string; color: string }
+) {
+  try {
+    const authResult = await requireAdmin();
+    if (!authResult.authenticated) {
+      return { success: false, error: authResult.error };
+    }
+
+    const existing = await db.category.findFirst({
+      where: { slug: input.slug },
+    });
+    if (existing) {
+      return { success: false, error: '该 Slug 已被使用' };
+    }
+
+    const category = await db.category.create({
+      data: {
+        name: input.name,
+        slug: input.slug,
+        description: input.description ?? null,
+        color: input.color,
+        updatedAt: new Date(),
+      },
+    });
+
+    return { success: true, data: category };
+  } catch (error) {
+    console.error('Error creating category:', error);
+    return { success: false, error: 'Failed to create category' };
+  }
+}
+
+/**
  * 获取多个分类（通过 ID 列表）
  */
 export async function getCategoriesByIds(ids: string[]) {
