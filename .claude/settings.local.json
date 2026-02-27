@@ -16,7 +16,11 @@
       "Bash(pnpm install:*)",
       "Bash(timeout 30 npx prisma:*)",
       "Bash(npx tsc:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(dir:*)"
+    ],
+    "additionalDirectories": [
+      "f:\\Code\\NewProject\\BlogT3\\src\\app\\admin\\(dashboard)\\tags\\edit"
     ]
   }
 }

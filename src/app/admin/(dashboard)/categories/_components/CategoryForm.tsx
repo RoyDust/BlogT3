@@ -2,16 +2,30 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { createCategory } from "../actions";
+import { updateCategory } from "~/server/actions/categories";
 
-export default function CategoryForm() {
+interface CategoryFormProps {
+  initialData?: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    color: string;
+  };
+}
+
+export default function CategoryForm({ initialData }: CategoryFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const isEdit = !!initialData;
+
   const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    color: "#3B82F6",
+    name: initialData?.name ?? "",
+    slug: initialData?.slug ?? "",
+    description: initialData?.description ?? "",
+    color: initialData?.color ?? "#3B82F6",
   });
 
   const generateSlug = (name: string) => {
@@ -36,25 +50,28 @@ export default function CategoryForm() {
     setLoading(true);
 
     try {
-      const result = await createCategory(formData);
-
-      if (!result.success) {
-        alert(result.error);
-        return;
+      if (isEdit) {
+        const result = await updateCategory(initialData.id, formData);
+        if (!result.success) {
+          toast.error(result.error || "更新失败");
+          return;
+        }
+        toast.success("分类更新成功");
+        router.push("/admin/categories");
+        router.refresh();
+      } else {
+        const result = await createCategory(formData);
+        if (!result.success) {
+          toast.error(result.error || "创建失败");
+          return;
+        }
+        toast.success("分类创建成功");
+        setFormData({ name: "", slug: "", description: "", color: "#3B82F6" });
+        router.refresh();
       }
-
-      // Reset form
-      setFormData({
-        name: "",
-        slug: "",
-        description: "",
-        color: "#3B82F6",
-      });
-
-      router.refresh();
     } catch (error) {
-      console.error("创建分类失败:", error);
-      alert("创建失败，请重试");
+      console.error(isEdit ? "更新分类失败:" : "创建分类失败:", error);
+      toast.error(isEdit ? "更新失败，请重试" : "创建失败，请重试");
     } finally {
       setLoading(false);
     }
@@ -137,7 +154,7 @@ export default function CategoryForm() {
         disabled={loading}
         className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {loading ? "创建中..." : "创建分类"}
+        {loading ? (isEdit ? "更新中..." : "创建中...") : (isEdit ? "更新分类" : "创建分类")}
       </button>
     </form>
   );

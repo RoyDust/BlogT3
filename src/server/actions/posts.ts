@@ -379,6 +379,55 @@ export async function getPostComments(postId: string) {
 }
 
 /**
+ * 批量删除文章
+ */
+export async function batchDeletePosts(ids: string[]) {
+  try {
+    if (ids.length === 0) return { success: false, error: '未选择文章' };
+    if (ids.length > 100) return { success: false, error: '单次最多删除 100 篇文章' };
+
+    await db.post.deleteMany({
+      where: { id: { in: ids } },
+    });
+
+    revalidatePath('/blog');
+    return { success: true, count: ids.length };
+  } catch (error) {
+    console.error('Error batch deleting posts:', error);
+    return { success: false, error: 'Failed to batch delete posts' };
+  }
+}
+
+/**
+ * 批量更新文章状态
+ */
+export async function batchUpdatePostStatus(
+  ids: string[],
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+) {
+  try {
+    if (ids.length === 0) return { success: false, error: '未选择文章' };
+    if (ids.length > 100) return { success: false, error: '单次最多操作 100 篇文章' };
+
+    const updateData: any = { status, updatedAt: new Date() };
+    if (status === 'PUBLISHED') {
+      updateData.publishedAt = new Date();
+    }
+
+    await db.post.updateMany({
+      where: { id: { in: ids } },
+      data: updateData,
+    });
+
+    revalidatePath('/blog');
+    return { success: true, count: ids.length };
+  } catch (error) {
+    console.error('Error batch updating post status:', error);
+    return { success: false, error: 'Failed to batch update status' };
+  }
+}
+
+/**
  * 获取默认作者 ID
  */
 export async function getDefaultAuthorId() {

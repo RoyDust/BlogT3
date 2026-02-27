@@ -81,6 +81,36 @@ export async function deleteTag(id: string) {
 }
 
 /**
+ * 更新标签
+ */
+export async function updateTag(
+  id: string,
+  input: { name: string; slug: string }
+) {
+  try {
+    const existing = await db.tag.findFirst({
+      where: { slug: input.slug, id: { not: id } },
+    });
+    if (existing) {
+      return { success: false, error: '该 Slug 已被其他标签使用' };
+    }
+
+    const tag = await db.tag.update({
+      where: { id },
+      data: {
+        name: input.name,
+        slug: input.slug,
+      },
+    });
+
+    return { success: true, data: tag };
+  } catch (error) {
+    console.error('Error updating tag:', error);
+    return { success: false, error: 'Failed to update tag' };
+  }
+}
+
+/**
  * 获取文章的标签
  */
 export async function getPostTags(postId: string) {

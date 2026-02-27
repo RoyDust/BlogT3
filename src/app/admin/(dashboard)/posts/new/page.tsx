@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCategories } from "~/server/actions/categories";
 import { getPostById, createPost, updatePost, getDefaultAuthorId } from "~/server/actions/posts";
+import { getPostTags } from "~/server/actions/tags";
 import dynamic from "next/dynamic";
 import ImageUpload from "~/components/admin/ImageUpload";
+import TagSelector from "~/components/admin/TagSelector";
 
 // 动态导入 RichTextEditor（避免 SSR 问题）
 const RichTextEditor = dynamic(() => import("~/components/RichTextEditor"), {
@@ -27,6 +29,7 @@ export default function PostEditorPage({
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [postId, setPostId] = useState<string | undefined>(undefined);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   // 处理 params（可能是 Promise）
   useEffect(() => {
@@ -77,6 +80,11 @@ export default function PostEditorPage({
             categoryId: data.categoryId ?? "",
             status: data.status ?? "DRAFT",
           });
+          // 加载文章已关联的标签
+          const tagsResult = await getPostTags(postId!);
+          if (tagsResult.success && tagsResult.data) {
+            setSelectedTagIds(tagsResult.data.map((t) => t.id));
+          }
         }
       }
       void loadPost();
@@ -125,6 +133,7 @@ export default function PostEditorPage({
           coverImage: formData.coverImage || undefined,
           categoryId: formData.categoryId,
           status: status as "DRAFT" | "PUBLISHED",
+          tagIds: selectedTagIds,
         });
 
         if (!result.success) {
@@ -141,6 +150,7 @@ export default function PostEditorPage({
           authorId,
           categoryId: formData.categoryId,
           status: status as "DRAFT" | "PUBLISHED",
+          tagIds: selectedTagIds,
         });
 
         if (!result.success) {
@@ -282,6 +292,19 @@ export default function PostEditorPage({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Tags */}
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <label className="block text-sm font-medium text-slate-700">
+                标签
+              </label>
+              <div className="mt-2">
+                <TagSelector
+                  selectedTagIds={selectedTagIds}
+                  onChange={setSelectedTagIds}
+                />
+              </div>
             </div>
 
             {/* Cover Image */}

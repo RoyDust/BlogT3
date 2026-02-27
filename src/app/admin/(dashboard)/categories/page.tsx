@@ -1,6 +1,7 @@
 import { getCategories } from "~/server/actions/categories";
 import CategoryForm from "./_components/CategoryForm";
 import DeleteCategoryButton from "./_components/DeleteCategoryButton";
+import Link from "next/link";
 
 export default async function CategoriesPage() {
   const result = await getCategories();
@@ -46,10 +47,18 @@ export default async function CategoriesPage() {
                       </div>
                     </div>
                   </div>
-                  <DeleteCategoryButton
-                    categoryId={category.id}
-                    categoryName={category.name}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/categories/edit/${category.id}`}
+                      className="rounded bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                    >
+                      编辑
+                    </Link>
+                    <DeleteCategoryButton
+                      categoryId={category.id}
+                      categoryName={category.name}
+                    />
+                  </div>
                 </div>
               ))
             ) : (

@@ -1,5 +1,6 @@
 import { getGalleries } from "~/server/actions/galleries";
 import Link from "next/link";
+import DeleteGalleryButton from "./_components/DeleteGalleryButton";
 
 export default async function GalleriesPage() {
   const result = await getGalleries({
@@ -103,6 +104,11 @@ export default async function GalleriesPage() {
                         >
                           查看
                         </Link>
+                        <DeleteGalleryButton
+                          galleryId={gallery.id}
+                          galleryTitle={gallery.title}
+                          imageCount={gallery.imageCount}
+                        />
                       </div>
                     </td>
                   </tr>

@@ -2,14 +2,26 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { createTag } from "../actions";
+import { updateTag } from "~/server/actions/tags";
 
-export default function TagForm() {
+interface TagFormProps {
+  initialData?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}
+
+export default function TagForm({ initialData }: TagFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const isEdit = !!initialData;
+
   const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
+    name: initialData?.name ?? "",
+    slug: initialData?.slug ?? "",
   });
 
   const generateSlug = (name: string) => {
@@ -34,23 +46,28 @@ export default function TagForm() {
     setLoading(true);
 
     try {
-      const result = await createTag(formData);
-
-      if (!result.success) {
-        alert(result.error);
-        return;
+      if (isEdit) {
+        const result = await updateTag(initialData.id, formData);
+        if (!result.success) {
+          toast.error(result.error || "更新失败");
+          return;
+        }
+        toast.success("标签更新成功");
+        router.push("/admin/tags");
+        router.refresh();
+      } else {
+        const result = await createTag(formData);
+        if (!result.success) {
+          toast.error(result.error || "创建失败");
+          return;
+        }
+        toast.success("标签创建成功");
+        setFormData({ name: "", slug: "" });
+        router.refresh();
       }
-
-      // Reset form
-      setFormData({
-        name: "",
-        slug: "",
-      });
-
-      router.refresh();
     } catch (error) {
-      console.error("创建标签失败:", error);
-      alert("创建失败，请重试");
+      console.error(isEdit ? "更新标签失败:" : "创建标签失败:", error);
+      toast.error(isEdit ? "更新失败，请重试" : "创建失败，请重试");
     } finally {
       setLoading(false);
     }
@@ -93,7 +110,7 @@ export default function TagForm() {
         disabled={loading}
         className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {loading ? "创建中..." : "创建标签"}
+        {loading ? (isEdit ? "更新中..." : "创建中...") : (isEdit ? "更新标签" : "创建标签")}
       </button>
     </form>
   );

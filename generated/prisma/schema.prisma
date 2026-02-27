@@ -98,6 +98,7 @@ model Like {
   targetType LikeTargetType
   targetId   String
   createdAt  DateTime       @default(now()) @db.Timestamptz(6)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, targetType, targetId])
   @@index([targetType, targetId])
@@ -251,6 +252,7 @@ model User {
   updatedAt     DateTime       @db.Timestamptz(6)
   Account       Account[]
   Comment       Comment[]
+  Like          Like[]
   PhotoGallery  PhotoGallery[]
   Post          Post[]
   PostView      PostView[]

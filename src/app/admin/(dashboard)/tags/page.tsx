@@ -1,6 +1,7 @@
 import { getTags } from "~/server/actions/tags";
 import TagForm from "./_components/TagForm";
 import DeleteTagButton from "./_components/DeleteTagButton";
+import Link from "next/link";
 
 export default async function TagsPage() {
   const result = await getTags();
@@ -40,10 +41,18 @@ export default async function TagsPage() {
                       /{tag.slug}
                     </div>
                   </div>
-                  <DeleteTagButton
-                    tagId={tag.id}
-                    tagName={tag.name}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/tags/edit/${tag.id}`}
+                      className="rounded bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                    >
+                      编辑
+                    </Link>
+                    <DeleteTagButton
+                      tagId={tag.id}
+                      tagName={tag.name}
+                    />
+                  </div>
                 </div>
               ))
             ) : (
